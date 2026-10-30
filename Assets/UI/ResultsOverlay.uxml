@@ -1,0 +1,13 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement name="results" class="results">
+    <ui:VisualElement class="results-card" picking-mode="Ignore">
+      <ui:Label name="resultTitle" class="result-title" picking-mode="Ignore" />
+      <ui:Label name="resultFact" class="result-fact" picking-mode="Ignore" />
+      <ui:VisualElement class="result-actions" picking-mode="Ignore">
+        <ui:Button name="backToMenuButton" class="btn btn--accent result-button" text="Về menu" />
+        <ui:Button name="playAgainButton" class="btn btn--primary result-button" text="Chơi lại" />
+        <ui:Button name="continueButton" class="btn btn--primary result-button" text="Tiếp tục" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

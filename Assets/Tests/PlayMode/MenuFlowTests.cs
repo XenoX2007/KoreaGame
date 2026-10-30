@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -72,15 +73,50 @@ public class MenuFlowTests : InputTestFixture
     }
 
     [UnityTest]
+    public IEnumerator ResultsButtons_ReplayTheRoundAndReturnToTheMenu()
+    {
+        yield return LoadMenu();
+        yield return Tap(MenuRoot().Q("cardNguoiGo"), 1);
+        yield return new WaitForSecondsRealtime(0.5f);
+        Assert.AreEqual("NguoiGo", SceneManager.GetActiveScene().name);
+
+        var game = Object.FindAnyObjectByType<NguoiGoGame>();
+        var hud = (VisualElement)typeof(PanelMiniGame).GetField("_hud", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(game);
+        var results = hud.Q("results");
+        Assert.AreEqual(DisplayStyle.None, results.resolvedStyle.display);
+
+        yield return EndRoundAfterCountdown(game);
+        Assert.AreEqual(DisplayStyle.Flex, results.resolvedStyle.display);
+
+        yield return Tap(hud.Q("playAgainButton"), 2);
+        yield return null;
+        Assert.AreEqual(DisplayStyle.None, results.resolvedStyle.display);
+        Assert.IsFalse(game.IsRunning, "A replay starts with a new countdown");
+
+        yield return EndRoundAfterCountdown(game);
+        yield return Tap(hud.Q("backToMenuButton"), 3);
+        yield return new WaitForSecondsRealtime(0.5f);
+        Assert.AreEqual("Menu", SceneManager.GetActiveScene().name);
+    }
+
+    static IEnumerator EndRoundAfterCountdown(PanelMiniGame game)
+    {
+        while (!game.IsRunning) yield return null;
+        typeof(PanelMiniGame).GetMethod("EndRound", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(game, new object[] { "Test" });
+        // Let the results card lay out and finish its enter transition.
+        yield return new WaitForSecondsRealtime(0.6f);
+    }
+
+    [UnityTest]
     public IEnumerator TappingAComingSoonCard_StaysOnTheMenu()
     {
         yield return LoadMenu();
         var root = MenuRoot();
 
-        Assert.IsFalse(root.Q("cardNguoiGo").enabledSelf);
+        Assert.IsFalse(root.Q("cardDaCau").enabledSelf);
         Assert.IsFalse(root.Q("tournament").enabledSelf);
 
-        yield return Tap(root.Q("cardNguoiGo"), 1);
+        yield return Tap(root.Q("cardDaCau"), 1);
         yield return null;
 
         Assert.AreEqual("Menu", SceneManager.GetActiveScene().name);

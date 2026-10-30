@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <radialGradient id="earth" cx="0.5" cy="0.5" r="0.75">
+      <stop offset="0" stop-color="#F3E4BE"/>
+      <stop offset="1" stop-color="#D6BC88"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#earth)"/>
+  <g fill="#E98BB4" fill-opacity="0.5">
+    <circle cx="560" cy="170" r="20"/>
+    <circle cx="1360" cy="910" r="20"/>
+    <circle cx="1380" cy="180" r="14"/>
+    <circle cx="540" cy="900" r="14"/>
+  </g>
+  <g fill="#8FAE85" fill-opacity="0.45">
+    <circle cx="960" cy="1030" r="40"/>
+    <circle cx="300" cy="540" r="34"/>
+    <circle cx="1620" cy="540" r="34"/>
+  </g>
+</svg>

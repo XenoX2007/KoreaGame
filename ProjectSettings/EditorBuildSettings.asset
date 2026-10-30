@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Menu.unity
     guid: d9821887c7d966446a70ac25c6cc523c
   - enabled: 1
+    path: Assets/Scenes/NguoiGo.unity
+    guid: 134956e428d52ad4b9a608ed02c684c0
+  - enabled: 1
     path: Assets/Scenes/KeoCo.unity
     guid: c065ea21b9c451f44beb2132d4b83fc6
   - enabled: 1

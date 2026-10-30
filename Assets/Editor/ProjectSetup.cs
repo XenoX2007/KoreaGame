@@ -20,7 +20,9 @@ public static class ProjectSetup
     const string ThemePath = "Assets/UI/MadangTheme.tss";
     const string MenuUxmlPath = "Assets/UI/Menu/Menu.uxml";
     const string KeoCoUxmlPath = "Assets/UI/KeoCo/KeoCoHud.uxml";
-    const string KeoCoSeatUxmlPath = "Assets/UI/KeoCo/KeoCoSeat.uxml";
+    const string PlayerSeatUxmlPath = "Assets/UI/PlayerSeat.uxml";
+    const string NguoiGoScenePath = "Assets/Scenes/NguoiGo.unity";
+    const string NguoiGoUxmlPath = "Assets/UI/NguoiGo/NguoiGoHud.uxml";
     const string PodiumUxmlPath = "Assets/UI/Podium/Podium.uxml";
 
     // Phone lies flat on a table: lock landscape so a bump never flips the screen,
@@ -63,18 +65,31 @@ public static class ProjectSetup
     [MenuItem("KoreaGame/Create Input Test Scene")]
     public static void CreateInputTestScene() => CreateGameScene<InputTestGame>(InputTestScenePath);
 
+    // Regenerates everything, resetting tuning on the game components.
     // Menu ends up as the first build scene, so a device build boots into it.
     [MenuItem("KoreaGame/Create UI Scenes")]
     public static void CreateUiScenes()
     {
         CreateGameScene<PodiumScreen>(PodiumScenePath, PodiumUxmlPath);
-        CreateGameScene<KeoCoGame>(KeoCoScenePath, KeoCoUxmlPath, game =>
-        {
-            var serialized = new SerializedObject(game);
-            serialized.FindProperty("seatTemplate").objectReferenceValue = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(KeoCoSeatUxmlPath);
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-        });
+        CreateGameScene<KeoCoGame>(KeoCoScenePath, KeoCoUxmlPath, AssignSeatTemplate);
+        CreateNguoiGoScene();
+    }
+
+    [MenuItem("KoreaGame/Create Nguoi Go Scene")]
+    public static void CreateNguoiGoScene()
+    {
+        CreateGameScene<NguoiGoGame>(NguoiGoScenePath, NguoiGoUxmlPath, AssignSeatTemplate);
+        CreateMenuScene();
+    }
+
+    static void CreateMenuScene() =>
         CreateGameScene<MainMenu>(MenuScenePath, MenuUxmlPath, _ => new GameObject(nameof(GameManager), typeof(GameManager)));
+
+    static void AssignSeatTemplate(PanelMiniGame game)
+    {
+        var serialized = new SerializedObject(game);
+        serialized.FindProperty("seatTemplate").objectReferenceValue = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(PlayerSeatUxmlPath);
+        serialized.ApplyModifiedPropertiesWithoutUndo();
     }
 
     // A scene with a camera and the given component, set as the first build scene.
