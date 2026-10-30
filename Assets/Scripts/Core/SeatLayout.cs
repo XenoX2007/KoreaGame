@@ -19,7 +19,7 @@ public readonly struct Seat
         Rotation = rotation;
     }
 
-    public int Team => PlayerId % 2;
+    public int Team => SeatLayout.TeamOf(PlayerId);
 }
 
 public static class SeatLayout
@@ -49,6 +49,11 @@ public static class SeatLayout
         new Seat(2, new Rect(0f, 0.5f, 0.5f, 0.5f), new Vector2(0.12f, 0.85f), 180f),   // top-left
         new Seat(3, new Rect(0.5f, 0f, 0.5f, 0.5f), new Vector2(0.88f, 0.15f), 0f),     // bottom-right
     };
+
+    public static int TeamOf(int playerId) => playerId % 2;
+
+    // In 4-player games teammates sit on the same half: 0 & 2 (left), 1 & 3 (right).
+    public static int TeammateOf(int playerId, int playerCount) => playerCount == 4 ? (playerId + 2) % 4 : -1;
 
     public static Seat[] Get(int playerCount)
     {

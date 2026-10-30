@@ -18,9 +18,16 @@ KoreaGame ("Sân Chơi – Madang") is a 2D local-multiplayer mobile party game:
 - `SeatLayout`: per player count (2 or 4 only; 3 is intentionally unsupported) defines each seat's touch zone (normalized full-screen rect), UI anchor (inside safe area) and UI rotation. Ids are arranged so `team = id % 2` (even = left half, odd = right half).
 - `PlayerInputRouter`: self-creating `DontDestroyOnLoad` singleton. Maps EnhancedTouch fingers to players by the zone they started in (sticky until lift), plus keyboard (Z/P/Q/M = P1..P4 by screen corner) and mouse for Editor testing. Emits `PlayerInput(id, pressed)` only on 0↔1 transitions of held sources. Mini games must never read touches directly.
 - `MiniGameBase`: subclasses implement `Setup(playerCount)`, `OnPlayerInput`, `GetRanking()` (rank per player id, 1 = best, ties share rank; use `RanksFromScores`), and call `Begin()`/`Finish()`. Playing a mini-game scene directly uses its `editorPlayerCount`; otherwise `GameManager.Instance.PlayerCount`.
-- `GameManager`: persistent; session mode (single/tournament), scores (3/2/1/0 points), scene flow via `Continue()`. Scene names `Menu`, `KeoCo`, `NguoiGo`, `DaCau`, `Podium` are planned but don't exist yet.
-- `SeatCanvas`: runtime-built overlay canvas with a safe-area root; `CreateSeatRoot` places rotated per-player UI.
-- `Assets/Scripts/Prototype/InputTestGame` + `Assets/Scenes/InputTest.unity` (first build scene): multi-touch device test. Menu `KoreaGame/` (in `Assets/Editor/ProjectSetup.cs`) recreates that scene and applies mobile player settings.
+- `GameManager`: persistent; session mode (single/tournament), scores (3/2/1/0 points), scene flow via `Continue()`. Scene names `Menu`, `KeoCo`, `NguoiGo`, `DaCau`, `Podium`; only `KeoCo` exists so far.
+- `SeatCanvas`: runtime-built overlay canvas with a safe-area root; `CreateSeatRoot` places rotated per-player UI (local +y points away from the player, toward the table's middle).
+- `UiBuilder`: code-built placeholder uGUI (rects, images, text, generated circle/ring sprites). All current art is placeholder built this way; scenes contain only a camera and the game component.
+
+Each mini game is split into a pure rules model (explicit `double time` arguments, no Unity lifecycle, unit-tested) and a `MiniGameBase` view/glue component:
+
+- `Assets/Scripts/KeoCo/KeoCoModel`: beats precomputed from a BPM curve (tempo ramps up in the last `rampSeconds`); taps are judged Perfect/Good/Miss by distance to the nearest beat; one scoring tap per beat; an off-beat tap loses grip for `slipSeconds` (re-armed by further taps) so mashing can't beat rhythm; teammates hitting the same beat within `syncWindow` get the "Đồng lòng" bonus; ribbon position in [-1, 1] uses exactly integrated damped velocity (frame-rate independent); win at ±1 or by side at timeout. All tuning is in the serializable `KeoCoSettings` on `KeoCoGame` (Inspector).
+- `KeoCoGame`: countdown → round → result; taps to replay (or `GameManager.Continue()`); when played without a GameManager, a bottom-center button switches 1v1/2v2 between rounds.
+- `Assets/Scripts/Prototype/InputTestGame` + `Assets/Scenes/InputTest.unity`: multi-touch device test.
+- Menu `KoreaGame/` (`Assets/Editor/ProjectSetup.cs`) creates the KeoCo / InputTest scenes (whichever is created last becomes the first build scene; currently KeoCo) and applies mobile player settings.
 
 Enter Play Mode Options have **domain reload disabled**, so every static field needs a `[RuntimeInitializeOnLoadMethod(SubsystemRegistration)]` reset.
 

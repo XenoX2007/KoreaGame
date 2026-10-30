@@ -7,6 +7,7 @@ using UnityEngine.iOS;
 public static class ProjectSetup
 {
     const string InputTestScenePath = "Assets/Scenes/InputTest.unity";
+    const string KeoCoScenePath = "Assets/Scenes/KeoCo.unity";
 
     // Phone lies flat on a table: lock landscape so a bump never flips the screen,
     // and keep system edge gestures from stealing taps on the corner buttons.
@@ -22,7 +23,14 @@ public static class ProjectSetup
     }
 
     [MenuItem("KoreaGame/Create Input Test Scene")]
-    public static void CreateInputTestScene()
+    public static void CreateInputTestScene() => CreateGameScene<InputTestGame>(InputTestScenePath);
+
+    [MenuItem("KoreaGame/Create Keo Co Scene")]
+    public static void CreateKeoCoScene() => CreateGameScene<KeoCoGame>(KeoCoScenePath);
+
+    // A scene with just a camera and the game component, set as the first build scene
+    // so a device build boots straight into it.
+    static void CreateGameScene<T>(string path) where T : MiniGameBase
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
@@ -34,15 +42,14 @@ public static class ProjectSetup
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = new Color32(0x1E, 0x1E, 0x28, 0xFF);
 
-        new GameObject("InputTest", typeof(InputTestGame));
+        new GameObject(typeof(T).Name, typeof(T));
 
-        EditorSceneManager.SaveScene(scene, InputTestScenePath);
+        EditorSceneManager.SaveScene(scene, path);
 
-        // Put the test scene first so a device build boots straight into it.
-        var scenes = EditorBuildSettings.scenes.Where(s => s.path != InputTestScenePath).ToList();
-        scenes.Insert(0, new EditorBuildSettingsScene(InputTestScenePath, true));
+        var scenes = EditorBuildSettings.scenes.Where(s => s.path != path).ToList();
+        scenes.Insert(0, new EditorBuildSettingsScene(path, true));
         EditorBuildSettings.scenes = scenes.ToArray();
 
-        Debug.Log($"KoreaGame: created {InputTestScenePath} and set it as the first build scene.");
+        Debug.Log($"KoreaGame: created {path} and set it as the first build scene.");
     }
 }

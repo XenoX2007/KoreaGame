@@ -1,6 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 // Device test for multi-touch: each seat zone lights up in its player's color while held.
@@ -10,7 +8,6 @@ public class InputTestGame : MiniGameBase
     static readonly Rect ToggleZone = new Rect(0.42f, 0.42f, 0.16f, 0.16f);
 
     SeatCanvas _canvas;
-    Font _font;
     Image[] _zones;
     Image[] _buttons;
     Text[] _labels;
@@ -20,14 +17,10 @@ public class InputTestGame : MiniGameBase
 
     protected override void Start()
     {
-        _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         _canvas = SeatCanvas.Create("InputTestCanvas");
-        CreateEventSystem();
+        UiBuilder.EnsureEventSystem();
         CreateToggleButton();
-        _status = CreateText(_canvas.SafeArea, "", 36);
-        var statusRect = _status.rectTransform;
-        statusRect.anchorMin = statusRect.anchorMax = new Vector2(0.5f, 0.32f);
-        statusRect.sizeDelta = new Vector2(900f, 120f);
+        _status = UiBuilder.Text(UiBuilder.Rect(_canvas.SafeArea, "Status", new Vector2(0.5f, 0.32f), new Vector2(900f, 120f)), "", 36, Color.white);
 
         // The center button must not count as a seat press.
         PlayerInputRouter.Instance.IgnoredZones.Add(ToggleZone);
@@ -97,14 +90,11 @@ public class InputTestGame : MiniGameBase
             int id = seat.PlayerId;
             var color = SeatLayout.PlayerColors[id];
 
-            _zones[id] = _canvas.CreateScreenRegion($"Zone P{id + 1}", seat.Zone).gameObject.AddComponent<Image>();
-            _zones[id].color = new Color(color.r, color.g, color.b, 0.12f);
-            _zones[id].raycastTarget = false;
+            _zones[id] = UiBuilder.Image(_canvas.CreateScreenRegion($"Zone P{id + 1}", seat.Zone), new Color(color.r, color.g, color.b, 0.12f));
 
             var root = _canvas.CreateSeatRoot(seat, new Vector2(220f, 220f));
-            _buttons[id] = CreateImage(root, color);
-            _labels[id] = CreateText(root, $"P{id + 1}\n0", 64);
-            _labels[id].color = Color.black;
+            _buttons[id] = UiBuilder.Image(UiBuilder.Rect(root, "Button"), color);
+            _labels[id] = UiBuilder.Text(UiBuilder.Rect(root, "Label"), $"P{id + 1}\n0", 64, Color.black);
         }
     }
 
@@ -112,51 +102,14 @@ public class InputTestGame : MiniGameBase
     {
         var rect = _canvas.CreateScreenRegion("Toggle 2P/4P", ToggleZone);
         rect.SetAsLastSibling();
-        var image = rect.gameObject.AddComponent<Image>();
-        image.color = new Color(1f, 1f, 1f, 0.85f);
+        var image = UiBuilder.Image(rect, new Color(1f, 1f, 1f, 0.85f));
+        image.raycastTarget = true;
         rect.gameObject.AddComponent<Button>().onClick.AddListener(() =>
         {
             int next = PlayerCount == 2 ? 4 : 2;
             PlayerInputRouter.Instance.Configure(next);
             Setup(next);
         });
-        var label = CreateText(rect, "2P / 4P", 40);
-        label.color = Color.black;
-    }
-
-    static void CreateEventSystem()
-    {
-        if (EventSystem.current != null) return;
-        new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
-    }
-
-    static Image CreateImage(RectTransform parent, Color color)
-    {
-        var image = Stretch(new GameObject("Button", typeof(RectTransform)), parent).AddComponent<Image>();
-        image.color = color;
-        image.raycastTarget = false;
-        return image;
-    }
-
-    Text CreateText(RectTransform parent, string value, int size)
-    {
-        var text = Stretch(new GameObject("Label", typeof(RectTransform)), parent).AddComponent<Text>();
-        text.font = _font;
-        text.fontSize = size;
-        text.alignment = TextAnchor.MiddleCenter;
-        text.color = Color.white;
-        text.raycastTarget = false;
-        text.text = value;
-        return text;
-    }
-
-    static GameObject Stretch(GameObject go, RectTransform parent)
-    {
-        var rect = (RectTransform)go.transform;
-        rect.SetParent(parent, false);
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = rect.offsetMax = Vector2.zero;
-        return go;
+        UiBuilder.Text(UiBuilder.Rect(rect, "Label"), "2P / 4P", 40, Color.black);
     }
 }
