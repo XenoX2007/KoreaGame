@@ -17,6 +17,17 @@ public class MenuFlowTests : InputTestFixture
         InputSystem.AddDevice<Touchscreen>();
     }
 
+    // Runs before TearDown. A UI panel left loaded keeps Unity's input-for-UI provider alive past this
+    // test's fake input system, and the next test's touches then hit a provider that has shut down.
+    [UnityTearDown]
+    public IEnumerator UnloadLoadedScene()
+    {
+        var loaded = SceneManager.GetActiveScene();
+        SceneManager.SetActiveScene(SceneManager.CreateScene("MenuFlowTestsEmpty"));
+        yield return SceneManager.UnloadSceneAsync(loaded);
+        yield return null;
+    }
+
     public override void TearDown()
     {
         if (GameManager.Instance != null) Object.DestroyImmediate(GameManager.Instance.gameObject);
@@ -108,17 +119,37 @@ public class MenuFlowTests : InputTestFixture
     }
 
     [UnityTest]
-    public IEnumerator TappingAComingSoonCard_StaysOnTheMenu()
+    public IEnumerator Tournament_PlaysEveryGameInOrder_ThenShowsThePodium()
     {
         yield return LoadMenu();
         var root = MenuRoot();
+        Assert.IsTrue(root.Q("tournament").enabledSelf);
+        Assert.IsFalse(root.Q("tournament").ClassListContains("is-soon"));
 
-        Assert.IsFalse(root.Q("cardDaCau").enabledSelf);
-        Assert.IsFalse(root.Q("tournament").enabledSelf);
+        yield return Tap(root.Q("tournament"), 1);
 
-        yield return Tap(root.Q("cardDaCau"), 1);
-        yield return null;
+        int touch = 2;
+        foreach (var scene in new[] { "NguoiGo", "KeoCo", "DaCau" })
+        {
+            yield return new WaitForSecondsRealtime(0.5f);
+            Assert.AreEqual(scene, SceneManager.GetActiveScene().name);
 
-        Assert.AreEqual("Menu", SceneManager.GetActiveScene().name);
+            var game = Object.FindAnyObjectByType<PanelMiniGame>();
+            var hud = HudOf(game);
+            yield return EndRoundAfterCountdown(game);
+
+            Assert.AreEqual(DisplayStyle.Flex, hud.Q("continueButton").resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.None, hud.Q("playAgainButton").resolvedStyle.display);
+            yield return Tap(hud.Q("continueButton"), touch++);
+        }
+
+        yield return new WaitForSecondsRealtime(0.5f);
+        Assert.AreEqual("Podium", SceneManager.GetActiveScene().name);
+        Assert.AreEqual(SessionMode.Tournament, GameManager.Instance.Mode);
+        CollectionAssert.IsNotEmpty(GameManager.Instance.Scores);
+        Assert.Greater(GameManager.Instance.Scores[0], 0, "Each game should have added tournament points");
     }
+
+    static VisualElement HudOf(PanelMiniGame game) =>
+        (VisualElement)typeof(PanelMiniGame).GetField("_hud", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(game);
 }

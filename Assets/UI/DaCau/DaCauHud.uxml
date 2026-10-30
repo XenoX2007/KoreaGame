@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:Template src="../ResultsOverlay.uxml" name="ResultsOverlay" />
+  <ui:Style src="DaCauHud.uss" />
+  <ui:VisualElement name="daCauHud" class="app da-cau" picking-mode="Ignore">
+    <ui:VisualElement name="field" class="field da-cau-field" picking-mode="Ignore" />
+    <ui:VisualElement name="stageLayer" class="app stage" picking-mode="Ignore">
+      <ui:VisualElement name="shuttleShadow" class="shuttle-shadow" picking-mode="Ignore" />
+      <ui:VisualElement name="shuttle" class="shuttle" picking-mode="Ignore" />
+    </ui:VisualElement>
+    <ui:VisualElement name="seatLayer" class="safe-area" picking-mode="Ignore" />
+    <ui:Label name="timer" class="timer" picking-mode="Ignore" />
+    <ui:Label name="windLabel" class="wind-label" picking-mode="Ignore" />
+    <ui:Label name="centerMessage" class="center-message" picking-mode="Ignore" />
+    <ui:Button name="togglePlayers" class="btn toggle-players" />
+    <ui:Instance template="ResultsOverlay" class="app" picking-mode="Ignore" />
+  </ui:VisualElement>
+</ui:UXML>

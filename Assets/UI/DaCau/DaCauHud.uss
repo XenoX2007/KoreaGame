@@ -1,0 +1,78 @@
+.da-cau-field {
+    background-image: url("project://database/Assets/UI/Art/dacau-field.svg");
+}
+
+/* Sizes must match ShuttleSize and ShadowSize in DaCauGame.cs. */
+.shuttle {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 120px;
+    height: 120px;
+    background-image: url("project://database/Assets/UI/Art/icon-shuttlecock.svg");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.shuttle.is-jegi {
+    background-image: url("project://database/Assets/UI/Art/jegi.svg");
+}
+
+.shuttle-shadow {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 70px;
+    height: 70px;
+    border-radius: 35px;
+    background-color: rgba(59, 42, 26, 0.28);
+}
+
+.wind-label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 128px;
+    margin: 0;
+    padding: 0;
+    font-size: 44px;
+    color: var(--jade-deep);
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--paper);
+}
+
+.lives {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -44px;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.life {
+    width: 28px;
+    height: 28px;
+    margin: 0 5px;
+    border-radius: 14px;
+    border-width: 3px;
+    border-color: var(--paper);
+    background-color: var(--rose);
+    transition-property: scale, opacity;
+    transition-duration: 200ms;
+}
+
+.life.is-lost {
+    opacity: 0.25;
+    scale: 0.7 0.7;
+}
+
+.seat--duel .lives {
+    left: 180px;
+    right: -180px;
+    top: 72px;
+}
+
+.seat.is-out .seat-disc {
+    opacity: 0.35;
+}
