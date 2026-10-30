@@ -1,0 +1,287 @@
+.field {
+    position: absolute;
+    left: -24px;
+    right: -24px;
+    top: -24px;
+    bottom: -24px;
+    background-image: url("project://database/Assets/UI/Art/keoco-field.svg");
+    -unity-background-scale-mode: scale-and-crop;
+    transition-property: filter;
+    transition-duration: 300ms;
+}
+
+/* Filters render the subtree to a texture, so this applies only once the action has stopped. */
+.is-finished .field {
+    filter: blur(6px) grayscale(0.35);
+}
+
+.center-line {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 420px;
+    margin-left: -3px;
+    margin-top: -210px;
+    background-color: var(--wood);
+    opacity: 0.4;
+}
+
+/* 560px must match TrackHalfWidth in KeoCoGame.cs. */
+.win-line {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 520px;
+    margin-left: -5px;
+    margin-top: -260px;
+    border-radius: 5px;
+    background-color: var(--wood);
+}
+
+.win-line--left {
+    translate: -560px 0;
+}
+
+.win-line--right {
+    translate: 560px 0;
+}
+
+.rope {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1100px;
+    height: 18px;
+    margin-left: -550px;
+    margin-top: -9px;
+    border-radius: 9px;
+    background-color: #9C6B3A;
+}
+
+.ribbon {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 30px;
+    height: 90px;
+    margin-left: -15px;
+    margin-top: -45px;
+    border-radius: 8px;
+    background-color: var(--rose);
+}
+
+.puller {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100px;
+    height: 100px;
+    margin-left: -50px;
+    margin-top: -50px;
+    border-radius: 50px;
+    border-width: 5px;
+    border-color: var(--paper);
+    background-color: var(--player);
+    align-items: center;
+    justify-content: center;
+}
+
+.puller Label {
+    margin: 0;
+    padding: 0;
+    font-size: 34px;
+}
+
+.seat {
+    width: 170px;
+    height: 170px;
+    margin-left: -85px;
+    margin-top: -85px;
+}
+
+.seat-ring {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-width: 13px;
+    border-radius: 85px;
+    border-color: var(--player);
+}
+
+.seat-disc {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 85px;
+    background-color: var(--player);
+    align-items: center;
+    justify-content: center;
+}
+
+.seat-label {
+    margin: 0;
+    padding: 0;
+    font-size: 48px;
+}
+
+.seat-feedback,
+.seat-chant {
+    position: absolute;
+    left: -115px;
+    width: 400px;
+    height: 80px;
+    margin: 0;
+    padding: 0;
+    -unity-text-align: middle-center;
+}
+
+.seat-feedback {
+    top: -145px;
+    font-size: 46px;
+    opacity: 0;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--paper);
+}
+
+.seat-chant {
+    top: -215px;
+    font-size: 56px;
+    opacity: 0;
+}
+
+.seat--duel .seat-feedback {
+    left: 115px;
+    top: 5px;
+}
+
+.seat--duel .seat-chant {
+    left: 115px;
+    top: -65px;
+}
+
+.feedback--perfect {
+    color: var(--gold-deep);
+}
+
+.feedback--good {
+    color: var(--ink);
+}
+
+.feedback--miss {
+    color: var(--wood);
+}
+
+.feedback--sync {
+    color: var(--rose-deep);
+}
+
+.timer {
+    position: absolute;
+    left: 50%;
+    top: 26px;
+    width: 150px;
+    height: 94px;
+    margin: 0 0 0 -75px;
+    padding: 0;
+    border-radius: 47px;
+    background-color: var(--paper);
+    font-size: 60px;
+    -unity-text-align: middle-center;
+}
+
+.timer--final {
+    color: var(--rose-deep);
+}
+
+.center-message {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 16%;
+    margin: 0;
+    padding: 0;
+    font-size: 116px;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: var(--paper);
+}
+
+.toggle-players {
+    position: absolute;
+    left: 50%;
+    bottom: 24px;
+    width: 420px;
+    margin-left: -210px;
+    padding: 12px 20px;
+    font-size: 32px;
+}
+
+.results {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(59, 42, 26, 0.32);
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 220ms;
+}
+
+.results.is-in {
+    opacity: 1;
+}
+
+.results-card {
+    width: 1040px;
+    padding: 36px 64px 40px 64px;
+    border-radius: 44px;
+    border-bottom-width: 12px;
+    border-bottom-color: var(--paper-edge);
+    background-color: var(--paper);
+    align-items: center;
+    scale: 0.88 0.88;
+    transition-property: scale;
+    transition-duration: 360ms;
+    transition-timing-function: ease-out-back;
+}
+
+.results.is-in .results-card {
+    scale: 1 1;
+}
+
+.result-title {
+    margin: 0;
+    padding: 0;
+    font-size: 92px;
+    -unity-text-align: middle-center;
+}
+
+.result-fact {
+    margin: 12px 0 28px 0;
+    padding: 0;
+    min-height: 84px;
+    font-size: 30px;
+    color: var(--wood);
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.result-actions {
+    flex-direction: row;
+    justify-content: center;
+}
+
+.result-button {
+    width: 340px;
+    margin: 0 14px;
+}

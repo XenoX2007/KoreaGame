@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F9D9A0"/>
+      <stop offset="1" stop-color="#FDF3DE"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E5C793"/>
+      <stop offset="1" stop-color="#CFA76D"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <circle cx="1120" cy="210" r="130" fill="#F7BE4F"/>
+  <circle cx="1120" cy="210" r="175" fill="#F7BE4F" fill-opacity="0.22"/>
+  <path d="M0 480 C240 350 420 400 620 450 C860 380 1050 340 1260 440 C1480 360 1720 380 1920 470 L1920 640 L0 640 Z" fill="#B9C89A"/>
+  <path d="M0 530 C300 450 560 500 820 530 C1120 470 1500 480 1920 540 L1920 640 L0 640 Z" fill="#8FAE85"/>
+  <!-- Vietnamese đình roof, left -->
+  <rect x="86" y="470" width="24" height="150" fill="#6F4A2C"/>
+  <rect x="330" y="470" width="24" height="150" fill="#6F4A2C"/>
+  <path d="M-40 462 C30 470 90 452 130 400 L310 400 C350 452 410 470 480 462 C450 505 400 510 372 508 L68 508 C40 510 -10 505 -40 462 Z" fill="#A24B2E"/>
+  <rect x="140" y="384" width="160" height="20" rx="8" fill="#7D3620"/>
+  <!-- Korean hanok roof, right -->
+  <rect x="1566" y="470" width="24" height="150" fill="#6F4A2C"/>
+  <rect x="1830" y="470" width="24" height="150" fill="#6F4A2C"/>
+  <path d="M1470 470 C1540 478 1600 462 1640 392 L1800 392 C1840 462 1900 478 1970 470 C1940 512 1890 516 1860 514 L1580 514 C1550 516 1500 512 1470 470 Z" fill="#46565C"/>
+  <rect x="1630" y="376" width="180" height="20" rx="8" fill="#2F3C41"/>
+  <rect x="1590" y="514" width="240" height="14" fill="#2C8077"/>
+  <rect x="0" y="600" width="1920" height="480" fill="url(#ground)"/>
+  <rect x="0" y="600" width="1920" height="10" fill="#B98F58"/>
+</svg>

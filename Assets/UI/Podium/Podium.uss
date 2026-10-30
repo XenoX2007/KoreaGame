@@ -1,0 +1,121 @@
+.podium-bg {
+    position: absolute;
+    left: -4px;
+    right: -4px;
+    top: -4px;
+    bottom: -4px;
+    background-image: url("project://database/Assets/UI/Art/menu-courtyard.svg");
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.podium {
+    flex-grow: 1;
+    align-items: center;
+    padding: 24px 56px 32px 56px;
+}
+
+.podium-title {
+    margin: 0;
+    padding: 0;
+    font-size: 92px;
+    flex-shrink: 0;
+}
+
+.podium-stage {
+    flex-direction: row;
+    flex-grow: 1;
+    align-items: flex-end;
+    justify-content: center;
+    min-height: 0;
+}
+
+.podium-column {
+    width: 270px;
+    margin: 0 14px;
+    align-items: center;
+    opacity: 0;
+    translate: 0 70px;
+    transition-property: opacity, translate;
+    transition-duration: 360ms, 520ms;
+    transition-timing-function: ease-out, ease-out-back;
+}
+
+.is-in .podium-column {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.podium-column.is-empty {
+    display: none;
+}
+
+.podium-column--rank3 { transition-delay: 220ms, 220ms; }
+.podium-column--rank2 { transition-delay: 440ms, 440ms; }
+.podium-column--rank1 { transition-delay: 720ms, 720ms; }
+
+.podium-column--p1 { --player: var(--p1); }
+.podium-column--p2 { --player: var(--p2); }
+.podium-column--p3 { --player: var(--p3); }
+.podium-column--p4 { --player: var(--p4); }
+
+.podium-token {
+    width: 130px;
+    height: 130px;
+    border-radius: 65px;
+    border-width: 7px;
+    border-color: var(--paper);
+    background-color: var(--player);
+    align-items: center;
+    justify-content: center;
+}
+
+.podium-player {
+    margin: 0;
+    padding: 0;
+    font-size: 48px;
+}
+
+.podium-score {
+    margin: 6px 0;
+    padding: 0;
+    font-size: 36px;
+}
+
+.podium-step {
+    width: 100%;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    background-color: var(--paper);
+    align-items: center;
+    justify-content: center;
+}
+
+.podium-rank {
+    margin: 0;
+    padding: 0;
+    font-size: 84px;
+}
+
+.podium-column--rank1 .podium-step {
+    height: 340px;
+    background-color: var(--gold);
+}
+
+.podium-column--rank2 .podium-step {
+    height: 250px;
+}
+
+.podium-column--rank3 .podium-step {
+    height: 170px;
+}
+
+.podium-column--rank4 .podium-step {
+    height: 100px;
+    background-color: var(--paper-edge);
+}
+
+.podium-back {
+    width: 380px;
+    margin-top: 18px;
+    flex-shrink: 0;
+}

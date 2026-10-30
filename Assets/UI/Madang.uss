@@ -1,0 +1,75 @@
+:root {
+    --ink: #3B2A1A;
+    --paper: #FCF4E3;
+    --paper-edge: #E3CFA6;
+    --wood: #8A6A45;
+    --rose: #D6336C;
+    --rose-deep: #A3204F;
+    --gold: #F2B233;
+    --gold-deep: #A96A00;
+    --jade: #1F7A6D;
+    --jade-deep: #155A50;
+    --p1: #E94F4F;
+    --p2: #3D8BFF;
+    --p3: #3CC57A;
+    --p4: #FFC23D;
+    -unity-font-definition: url("project://database/Assets/UI/Fonts/MaliBoldSDF.asset");
+    color: var(--ink);
+}
+
+/* Unity's default theme stretches this root; this project uses its own theme instead. */
+.unity-ui-document__root {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.player--p1 { --player: var(--p1); }
+.player--p2 { --player: var(--p2); }
+.player--p3 { --player: var(--p3); }
+.player--p4 { --player: var(--p4); }
+
+.app {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.safe-area {
+    position: absolute;
+}
+
+.btn {
+    margin: 0;
+    padding: 18px 44px;
+    border-width: 0;
+    border-bottom-width: 9px;
+    border-radius: 30px;
+    background-color: var(--paper);
+    border-bottom-color: var(--paper-edge);
+    color: var(--ink);
+    font-size: 40px;
+    -unity-text-align: middle-center;
+    transition-property: translate, scale, opacity;
+    transition-duration: 90ms, 90ms, 200ms;
+}
+
+.btn:active {
+    translate: 0 5px;
+    scale: 0.98 0.98;
+}
+
+.btn--primary {
+    background-color: var(--jade);
+    border-bottom-color: var(--jade-deep);
+    color: var(--paper);
+}
+
+.btn--accent {
+    background-color: var(--gold);
+    border-bottom-color: var(--gold-deep);
+}

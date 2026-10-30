@@ -64,12 +64,17 @@ public class GameManager : MonoBehaviour
             Scores[i] += PointsForRank(ranking[i]);
     }
 
+    // True once every tournament mini game scene is in the build.
+    public bool TournamentReady => Array.TrueForAll(tournamentScenes, Application.CanStreamedLevelBeLoaded);
+
+    public void ReturnToMenu() => SceneManager.LoadScene(menuScene);
+
     // Called by the result screen once players are ready to move on.
     public void Continue()
     {
         if (Mode == SessionMode.Single)
         {
-            SceneManager.LoadScene(menuScene);
+            ReturnToMenu();
             return;
         }
 

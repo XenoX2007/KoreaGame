@@ -24,7 +24,7 @@ public abstract class MiniGameBase : MonoBehaviour
 
     protected virtual void OnDestroy()
     {
-        var router = PlayerInputRouter.Instance;
+        var router = PlayerInputRouter.Existing;
         if (router != null) router.PlayerInput -= OnPlayerInput;
     }
 
@@ -50,7 +50,7 @@ public abstract class MiniGameBase : MonoBehaviour
     }
 
     // Higher score = better rank. Works for distance run, lives left, team rope position, etc.
-    protected static int[] RanksFromScores(float[] scores)
+    public static int[] RanksFromScores(float[] scores)
     {
         var ranks = new int[scores.Length];
         for (int i = 0; i < scores.Length; i++)

@@ -1,0 +1,50 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:Style src="Podium.uss" />
+  <ui:VisualElement name="app" class="app">
+    <ui:VisualElement class="podium-bg" picking-mode="Ignore" />
+    <ui:VisualElement name="safeArea" class="safe-area" picking-mode="Ignore">
+      <ui:VisualElement name="podium" class="podium" picking-mode="Ignore">
+        <ui:Label class="podium-title" text="Bục vinh quang" picking-mode="Ignore" />
+        <ui:VisualElement class="podium-stage" picking-mode="Ignore">
+          <ui:VisualElement name="column0" class="podium-column" picking-mode="Ignore">
+            <ui:VisualElement class="podium-token" picking-mode="Ignore">
+              <ui:Label class="podium-player" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label class="podium-score" picking-mode="Ignore" />
+            <ui:VisualElement class="podium-step" picking-mode="Ignore">
+              <ui:Label class="podium-rank" picking-mode="Ignore" />
+            </ui:VisualElement>
+          </ui:VisualElement>
+          <ui:VisualElement name="column1" class="podium-column" picking-mode="Ignore">
+            <ui:VisualElement class="podium-token" picking-mode="Ignore">
+              <ui:Label class="podium-player" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label class="podium-score" picking-mode="Ignore" />
+            <ui:VisualElement class="podium-step" picking-mode="Ignore">
+              <ui:Label class="podium-rank" picking-mode="Ignore" />
+            </ui:VisualElement>
+          </ui:VisualElement>
+          <ui:VisualElement name="column2" class="podium-column" picking-mode="Ignore">
+            <ui:VisualElement class="podium-token" picking-mode="Ignore">
+              <ui:Label class="podium-player" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label class="podium-score" picking-mode="Ignore" />
+            <ui:VisualElement class="podium-step" picking-mode="Ignore">
+              <ui:Label class="podium-rank" picking-mode="Ignore" />
+            </ui:VisualElement>
+          </ui:VisualElement>
+          <ui:VisualElement name="column3" class="podium-column" picking-mode="Ignore">
+            <ui:VisualElement class="podium-token" picking-mode="Ignore">
+              <ui:Label class="podium-player" picking-mode="Ignore" />
+            </ui:VisualElement>
+            <ui:Label class="podium-score" picking-mode="Ignore" />
+            <ui:VisualElement class="podium-step" picking-mode="Ignore">
+              <ui:Label class="podium-rank" picking-mode="Ignore" />
+            </ui:VisualElement>
+          </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Button name="backToMenu" class="btn btn--primary podium-back" text="Về menu" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

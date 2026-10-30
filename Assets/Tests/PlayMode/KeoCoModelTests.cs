@@ -8,6 +8,19 @@ public class KeoCoModelTests
     static KeoCoModel NewModel(int players, KeoCoSettings settings = null) =>
         new KeoCoModel(players, settings ?? new KeoCoSettings(), Start);
 
+    [Test]
+    public void FunFact_SwitchesLanguageEveryTwoSeconds()
+    {
+        string vietnamese = KeoCoGame.FunFactAt(0.0);
+        string korean = KeoCoGame.FunFactAt(2.0);
+
+        StringAssert.StartsWith("Bạn có biết?", vietnamese);
+        StringAssert.StartsWith("알고 있나요?", korean);
+        Assert.AreEqual(vietnamese, KeoCoGame.FunFactAt(1.99));
+        Assert.AreEqual(vietnamese, KeoCoGame.FunFactAt(4.0));
+        Assert.AreEqual(korean, KeoCoGame.FunFactAt(7.5));
+    }
+
     // Advances the model frame by frame until the given time.
     static void RunUntil(KeoCoModel model, ref double now, double until)
     {

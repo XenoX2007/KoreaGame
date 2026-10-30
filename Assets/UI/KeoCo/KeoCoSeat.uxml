@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:VisualElement name="seatRing" class="seat-ring" picking-mode="Ignore" />
+  <ui:VisualElement name="seatDisc" class="seat-disc" picking-mode="Ignore">
+    <ui:Label name="seatLabel" class="seat-label" picking-mode="Ignore" />
+  </ui:VisualElement>
+  <ui:Label name="seatFeedback" class="seat-feedback" picking-mode="Ignore" />
+  <ui:Label name="seatChant" class="seat-chant" picking-mode="Ignore" />
+</ui:UXML>

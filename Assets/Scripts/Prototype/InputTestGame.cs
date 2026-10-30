@@ -30,7 +30,7 @@ public class InputTestGame : MiniGameBase
     protected override void OnDestroy()
     {
         base.OnDestroy();
-        var router = PlayerInputRouter.Instance;
+        var router = PlayerInputRouter.Existing;
         if (router != null) router.IgnoredZones.Remove(ToggleZone);
     }
 

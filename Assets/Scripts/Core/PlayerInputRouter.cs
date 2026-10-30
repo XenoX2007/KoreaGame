@@ -44,6 +44,9 @@ public class PlayerInputRouter : MonoBehaviour
         }
     }
 
+    // For cleanup in OnDestroy: never creates a router while a scene is shutting down.
+    public static PlayerInputRouter Existing => _instance;
+
     // Domain reload is disabled in this project, so statics survive between play sessions.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetStatics()

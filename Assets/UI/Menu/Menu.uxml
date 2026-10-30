@@ -1,0 +1,65 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:Style src="Menu.uss" />
+  <ui:VisualElement name="app" class="app">
+    <ui:VisualElement class="menu-bg" picking-mode="Ignore" />
+    <ui:VisualElement name="safeArea" class="safe-area" picking-mode="Ignore">
+      <ui:VisualElement name="menu" class="menu" picking-mode="Ignore">
+        <ui:VisualElement class="menu-header" picking-mode="Ignore">
+          <ui:VisualElement class="title-block" picking-mode="Ignore">
+            <ui:Label class="title" text="Sân Chơi" picking-mode="Ignore" />
+            <ui:Label class="subtitle" text="마당 · Madang · 같이 놀자" picking-mode="Ignore" />
+          </ui:VisualElement>
+          <ui:VisualElement class="picker" picking-mode="Ignore">
+            <ui:Label class="picker-label" text="Bao nhiêu người chơi?" picking-mode="Ignore" />
+            <ui:VisualElement class="picker-options" picking-mode="Ignore">
+              <ui:Button name="twoPlayers" class="btn seat-option">
+                <ui:Label class="seat-option__label" text="2 người" picking-mode="Ignore" />
+                <ui:VisualElement class="dots" picking-mode="Ignore">
+                  <ui:VisualElement class="dot player--p1" picking-mode="Ignore" />
+                  <ui:VisualElement class="dot player--p2" picking-mode="Ignore" />
+                </ui:VisualElement>
+              </ui:Button>
+              <ui:Button name="fourPlayers" class="btn seat-option">
+                <ui:Label class="seat-option__label" text="4 người" picking-mode="Ignore" />
+                <ui:VisualElement class="dots" picking-mode="Ignore">
+                  <ui:VisualElement class="dot player--p1" picking-mode="Ignore" />
+                  <ui:VisualElement class="dot player--p2" picking-mode="Ignore" />
+                  <ui:VisualElement class="dot player--p3" picking-mode="Ignore" />
+                  <ui:VisualElement class="dot player--p4" picking-mode="Ignore" />
+                </ui:VisualElement>
+              </ui:Button>
+            </ui:VisualElement>
+          </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement class="cards" picking-mode="Ignore">
+          <ui:Button name="cardNguoiGo" class="btn game-card game-card--first">
+            <ui:VisualElement class="card-icon card-icon--mugunghwa" picking-mode="Ignore" />
+            <ui:Label class="card-name" text="Người Gỗ" picking-mode="Ignore" />
+            <ui:Label class="card-story" text="Hai trò khác tên, một luật chơi" picking-mode="Ignore" />
+            <ui:Label class="card-korean" text="무궁화 꽃이 피었습니다" picking-mode="Ignore" />
+            <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
+          </ui:Button>
+          <ui:Button name="cardKeoCo" class="btn game-card game-card--second">
+            <ui:VisualElement class="card-icon card-icon--rope" picking-mode="Ignore" />
+            <ui:Label class="card-name" text="Kéo Co" picking-mode="Ignore" />
+            <ui:Label class="card-story" text="Một di sản chung" picking-mode="Ignore" />
+            <ui:Label class="card-korean" text="줄다리기" picking-mode="Ignore" />
+            <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
+          </ui:Button>
+          <ui:Button name="cardDaCau" class="btn game-card game-card--third">
+            <ui:VisualElement class="card-icon card-icon--shuttlecock" picking-mode="Ignore" />
+            <ui:Label class="card-name" text="Đá Cầu" picking-mode="Ignore" />
+            <ui:Label class="card-story" text="Chơi cùng nhau, chuyền cầu cho nhau" picking-mode="Ignore" />
+            <ui:Label class="card-korean" text="제기차기" picking-mode="Ignore" />
+            <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
+          </ui:Button>
+        </ui:VisualElement>
+        <ui:Button name="tournament" class="btn btn--primary tournament">
+          <ui:Label class="tournament__title" text="Giải đấu" picking-mode="Ignore" />
+          <ui:Label class="tournament__sub" text="Chơi cả 3 trò, tính điểm, lên bục vinh quang" picking-mode="Ignore" />
+          <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
+        </ui:Button>
+      </ui:VisualElement>
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

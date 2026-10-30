@@ -1,0 +1,28 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:Style src="KeoCoHud.uss" />
+  <ui:VisualElement name="keoCoHud" class="app" picking-mode="Ignore">
+    <ui:VisualElement name="field" class="field" picking-mode="Ignore">
+      <ui:VisualElement class="center-line" picking-mode="Ignore" />
+      <ui:VisualElement class="win-line win-line--left" picking-mode="Ignore" />
+      <ui:VisualElement class="win-line win-line--right" picking-mode="Ignore" />
+      <ui:VisualElement name="rope" class="rope" picking-mode="Ignore">
+        <ui:VisualElement class="ribbon" picking-mode="Ignore" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="seatLayer" class="safe-area" picking-mode="Ignore" />
+    <ui:Label name="timer" class="timer" picking-mode="Ignore" />
+    <ui:Label name="centerMessage" class="center-message" picking-mode="Ignore" />
+    <ui:Button name="togglePlayers" class="btn toggle-players" />
+    <ui:VisualElement name="results" class="results">
+      <ui:VisualElement class="results-card" picking-mode="Ignore">
+        <ui:Label name="resultTitle" class="result-title" picking-mode="Ignore" />
+        <ui:Label name="resultFact" class="result-fact" picking-mode="Ignore" />
+        <ui:VisualElement class="result-actions" picking-mode="Ignore">
+          <ui:Button name="backToMenuButton" class="btn btn--accent result-button" text="Về menu" />
+          <ui:Button name="playAgainButton" class="btn btn--primary result-button" text="Chơi lại" />
+          <ui:Button name="continueButton" class="btn btn--primary result-button" text="Tiếp tục" />
+        </ui:VisualElement>
+      </ui:VisualElement>
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>
