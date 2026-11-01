@@ -4,7 +4,7 @@
     right: -4px;
     top: -4px;
     bottom: -4px;
-    background-image: url("project://database/Assets/UI/Art/menu-courtyard.svg");
+    background-image: url("project://database/Assets/UI%20Assets/BACKGROUND.png");
     -unity-background-scale-mode: scale-and-crop;
 }
 
@@ -29,6 +29,8 @@
 
 .title {
     font-size: 128px;
+    height: 168px;
+    -unity-text-align: middle-left;
     margin: 0;
     padding: 0;
     -unity-text-outline-width: 1px;
@@ -37,6 +39,7 @@
 
 .subtitle {
     font-size: 40px;
+    height: 56px;
     margin: -8px 0 0 6px;
     padding: 0;
     color: var(--rose-deep);
@@ -48,6 +51,7 @@
 
 .picker-label {
     font-size: 32px;
+    height: 46px;
     margin: 0 8px 10px 0;
     padding: 0;
 }
@@ -57,43 +61,30 @@
 }
 
 .seat-option {
-    padding: 12px 34px;
-    margin-left: 18px;
-    border-top-width: 5px;
-    border-left-width: 5px;
-    border-right-width: 5px;
-    border-top-color: var(--paper);
-    border-left-color: var(--paper);
-    border-right-color: var(--paper);
+    width: 188px;
+    height: 170px;
+    margin-left: 14px;
+    padding: 0;
+    border-bottom-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    opacity: 0.6;
+    scale: 0.86 0.86;
+    -unity-background-scale-mode: scale-to-fit;
+    transition-property: translate, scale, opacity;
+    transition-duration: 90ms, 160ms, 160ms;
+}
+
+.seat-option--two {
+    background-image: url("project://database/Assets/UI%20Assets/Group%201(1).png");
+}
+
+.seat-option--four {
+    background-image: url("project://database/Assets/UI%20Assets/Group%202.png");
 }
 
 .seat-option.is-selected {
-    border-top-color: var(--jade);
-    border-left-color: var(--jade);
-    border-right-color: var(--jade);
-    border-bottom-color: var(--jade);
-    background-color: #E2F2E6;
-}
-
-.seat-option__label {
-    font-size: 40px;
-    margin: 0;
-    padding: 0;
-    -unity-text-align: middle-center;
-}
-
-.dots {
-    flex-direction: row;
-    justify-content: center;
-    margin-top: 6px;
-}
-
-.dot {
-    width: 24px;
-    height: 24px;
-    margin: 0 4px;
-    border-radius: 12px;
-    background-color: var(--player);
+    opacity: 1;
+    scale: 1 1;
 }
 
 .cards {
@@ -170,6 +161,7 @@
 
 .card-name {
     font-size: 52px;
+    height: 72px;
     margin: 2px 0 0 0;
     padding: 0;
     -unity-text-align: middle-center;
@@ -177,6 +169,7 @@
 
 .card-story {
     font-size: 26px;
+    height: 38px;
     margin: 2px 0 0 0;
     padding: 0;
     color: var(--wood);
@@ -186,6 +179,7 @@
 
 .card-korean {
     font-size: 28px;
+    height: 40px;
     margin: 4px 0 0 0;
     padding: 0;
     color: var(--rose-deep);
@@ -211,6 +205,7 @@
 
 .tournament {
     flex-direction: row;
+    height: 92px;
     flex-shrink: 0;
     justify-content: center;
     align-items: center;
@@ -221,6 +216,15 @@
 .tournament:disabled {
     background-color: #7E9C94;
     border-bottom-color: #62807A;
+}
+
+.tournament-cup {
+    width: 76px;
+    height: 110px;
+    flex-shrink: 0;
+    margin-right: 20px;
+    background-image: url("project://database/Assets/UI%20Assets/Trophy%20Cup%20%E2%80%93%20VN%20x%20KR.png?fileID=4842163755836273828&guid=957f1ecdb1c075141ba7636f88b479c4&type=3");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .tournament__title {

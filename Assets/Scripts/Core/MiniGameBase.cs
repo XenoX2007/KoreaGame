@@ -12,20 +12,27 @@ public abstract class MiniGameBase : MonoBehaviour
 
     public int PlayerCount { get; private set; }
     public bool IsRunning { get; private set; }
+    public virtual bool IsPaused => false;
 
     protected virtual void Start()
     {
         int playerCount = GameManager.Instance != null ? GameManager.Instance.PlayerCount : editorPlayerCount;
         var router = PlayerInputRouter.Instance;
         router.Configure(playerCount);
-        router.PlayerInput += OnPlayerInput;
+        router.PlayerInput += RouteInput;
         Setup(playerCount);
     }
 
     protected virtual void OnDestroy()
     {
         var router = PlayerInputRouter.Existing;
-        if (router != null) router.PlayerInput -= OnPlayerInput;
+        if (router != null) router.PlayerInput -= RouteInput;
+    }
+
+    // Releases still pass while paused, so a finger lifted then doesn't count as held afterwards.
+    void RouteInput(int playerId, bool pressed)
+    {
+        if (!pressed || !IsPaused) OnPlayerInput(playerId, pressed);
     }
 
     public virtual void Setup(int playerCount)

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,11 +11,18 @@ public class PodiumScreen : MonoBehaviour
     [Tooltip("Scores shown when this scene is played directly, without a GameManager.")]
     [SerializeField] int[] previewScores = { 6, 7, 3, 2 };
 
+    PodiumCelebration _celebration;
+
     void Awake() => GetComponent<PanelRenderer>().RegisterUIReloadCallback(OnUiLoaded);
 
     void OnDestroy() => GetComponent<PanelRenderer>().UnregisterUIReloadCallback(OnUiLoaded);
 
     void Start() => UiBuilder.EnsureEventSystem();
+
+    void Update()
+    {
+        if (_celebration != null) _celebration.Update(Time.unscaledDeltaTime);
+    }
 
     void OnUiLoaded(PanelRenderer panel, VisualElement root)
     {
@@ -25,6 +33,8 @@ public class PodiumScreen : MonoBehaviour
         var scores = game != null ? game.Scores : previewScores;
         var ranks = MiniGameBase.RanksFromScores(scores.Select(s => (float)s).ToArray());
         var order = StandingsOrder(ranks);
+        var everyone = new List<CharacterView>();
+        var champions = new List<CharacterView>();
 
         for (int i = 0; i < SeatLayout.MaxPlayers; i++)
         {
@@ -40,12 +50,23 @@ public class PodiumScreen : MonoBehaviour
             int player = order[place];
             column.AddToClassList($"podium-column--rank{Mathf.Min(ranks[player], 4)}");
             column.AddToClassList($"podium-column--p{player + 1}");
-            column.Q<Label>(className: "podium-player").text = $"P{player + 1}";
-            column.Q<Label>(className: "podium-score").text = $"{scores[player]} điểm";
+            var character = new CharacterView(player);
+            column.Q(className: "podium-token").Add(character.Root);
+            everyone.Add(character);
+            if (ranks[player] == 1)
+            {
+                character.HoldCup();
+                champions.Add(character);
+            }
+
+            int points = scores[player];
+            Bilingual.Track(column.Q<Label>(className: "podium-score"), () => Bilingual.Points(points));
             column.Q<Label>(className: "podium-rank").text = ranks[player].ToString();
         }
 
+        Bilingual.Bind(root);
         SeatPanels.Reveal(root.Q("podium"));
+        _celebration = new PodiumCelebration(root.Q("rayLayer"), root.Q("confettiLayer"), everyone, champions);
     }
 
     // Player ids from first place to last; ties keep seat order.

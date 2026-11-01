@@ -50,11 +50,16 @@ public class MenuFlowTests : InputTestFixture
         return (VisualElement)field.GetValue(panel.GetComponent<MainMenu>());
     }
 
-    IEnumerator Tap(VisualElement element, int touchId)
+    static Vector2 ScreenPoint(VisualElement element)
     {
         var bounds = element.worldBound;
         float scale = Screen.width / element.panel.visualTree.layout.width;
-        var position = new Vector2(bounds.center.x * scale, Screen.height - bounds.center.y * scale);
+        return new Vector2(bounds.center.x * scale, Screen.height - bounds.center.y * scale);
+    }
+
+    IEnumerator Tap(VisualElement element, int touchId)
+    {
+        var position = ScreenPoint(element);
 
         BeginTouch(touchId, position);
         yield return null;
@@ -110,10 +115,58 @@ public class MenuFlowTests : InputTestFixture
         Assert.AreEqual("Menu", SceneManager.GetActiveScene().name);
     }
 
+    [UnityTest]
+    public IEnumerator Pause_StopsTheRound_ThenContinuesOrGoesHome()
+    {
+        yield return LoadMenu();
+        yield return Tap(MenuRoot().Q("cardDaCau"), 1);
+        yield return new WaitForSecondsRealtime(0.5f);
+
+        var game = Object.FindAnyObjectByType<DaCauGame>();
+        var hud = HudOf(game);
+        var router = PlayerInputRouter.Instance;
+        while (!game.IsRunning) yield return null;
+
+        // The press on the pause button must not reach a player.
+        var button = ScreenPoint(hud.Q("pauseButton"));
+        BeginTouch(2, button);
+        yield return null;
+        yield return null;
+        for (int id = 0; id < game.PlayerCount; id++) Assert.IsFalse(router.IsPressed(id));
+        EndTouch(2, button);
+        yield return null;
+        yield return null;
+
+        Assert.IsTrue(game.IsPaused);
+        var pause = hud.Q("pause");
+        Assert.AreEqual(DisplayStyle.Flex, pause.resolvedStyle.display);
+
+        double stoppedAt = GameTime(game);
+        yield return new WaitForSecondsRealtime(0.4f);
+        Assert.AreEqual(stoppedAt, GameTime(game));
+
+        yield return Tap(hud.Q("resumeButton"), 3);
+        Assert.IsFalse(game.IsPaused);
+        Assert.AreEqual(DisplayStyle.None, pause.resolvedStyle.display);
+        yield return new WaitForSecondsRealtime(0.1f);
+        Assert.Greater(GameTime(game), stoppedAt);
+        Assert.Less(GameTime(game), stoppedAt + 0.39, "The time spent paused must not count");
+
+        yield return Tap(hud.Q("pauseButton"), 4);
+        yield return new WaitForSecondsRealtime(0.4f);
+        yield return Tap(hud.Q("homeButton"), 5);
+        yield return new WaitForSecondsRealtime(0.5f);
+        Assert.AreEqual("Menu", SceneManager.GetActiveScene().name);
+        CollectionAssert.IsEmpty(PlayerInputRouter.Instance.IgnoredZones);
+    }
+
+    static double GameTime(PanelMiniGame game) =>
+        (double)typeof(PanelMiniGame).GetProperty("Now", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(game);
+
     static IEnumerator EndRoundAfterCountdown(PanelMiniGame game)
     {
         while (!game.IsRunning) yield return null;
-        typeof(PanelMiniGame).GetMethod("EndRound", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(game, new object[] { "Test" });
+        typeof(PanelMiniGame).GetMethod("EndRound", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(game, new object[] { (System.Func<string>)(() => "Test") });
         // Let the results card lay out and finish its enter transition.
         yield return new WaitForSecondsRealtime(0.6f);
     }

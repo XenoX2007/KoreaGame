@@ -2,20 +2,18 @@ using System;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
-// End-of-round card shared by the mini games (ResultsOverlay.uxml). The fun fact cycles through
-// its languages; buttons depend on whether this is a tournament.
+// End-of-round card shared by the mini games (ResultsOverlay.uxml). The fun fact holds one line per
+// language, Vietnamese first; buttons depend on whether this is a tournament.
 public class ResultsOverlay
 {
-    const float FactSeconds = 2f;
-
     readonly VisualElement _results;
     readonly Label _title;
     readonly Label _fact;
     readonly Button _continue;
     readonly Button _playAgain;
     readonly Button _backToMenu;
+    Func<string> _titleText;
     string[] _facts;
-    double _shownAt;
 
     public event Action PlayAgain;
 
@@ -33,13 +31,10 @@ public class ResultsOverlay
         _backToMenu.clicked += BackToMenu;
     }
 
-    public static string FactAt(string[] facts, double elapsed) => facts[(int)(elapsed / FactSeconds) % facts.Length];
-
-    public void Show(string title, string[] facts, double now)
+    public void Show(Func<string> title, string[] facts)
     {
-        _title.text = title;
+        _titleText = title;
         _facts = facts;
-        _shownAt = now;
 
         bool tournament = GameManager.Instance != null && GameManager.Instance.Mode == SessionMode.Tournament;
         _continue.style.display = tournament ? DisplayStyle.Flex : DisplayStyle.None;
@@ -57,12 +52,14 @@ public class ResultsOverlay
         _results.RemoveFromClassList("is-in");
     }
 
-    public void Update(double now)
+    public void Update()
     {
-        if (_facts != null) _fact.text = FactAt(_facts, now - _shownAt);
+        if (_facts == null) return;
+        _title.text = _titleText();
+        _fact.text = _facts[Bilingual.IsKorean ? 1 : 0];
     }
 
-    static void BackToMenu()
+    public static void BackToMenu()
     {
         if (GameManager.Instance != null) GameManager.Instance.ReturnToMenu();
         else SceneManager.LoadScene("Menu");

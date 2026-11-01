@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:Button name="pauseButton" class="btn pause-button">
+    <ui:VisualElement class="pause-icon" picking-mode="Ignore" />
+  </ui:Button>
+  <ui:VisualElement name="pause" class="results">
+    <ui:VisualElement class="results-card pause-card" picking-mode="Ignore">
+      <ui:Label class="result-title pause-title" text="Tạm dừng" picking-mode="Ignore" />
+      <ui:VisualElement class="result-actions" picking-mode="Ignore">
+        <ui:Button name="resumeButton" class="btn btn--accent result-button" text="Tiếp tục">
+          <ui:VisualElement class="resume-icon" picking-mode="Ignore" />
+        </ui:Button>
+        <ui:Button name="homeButton" class="btn btn--primary result-button" text="Về trang chủ" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+  </ui:VisualElement>
+</ui:UXML>

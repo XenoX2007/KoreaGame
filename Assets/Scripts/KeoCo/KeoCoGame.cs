@@ -26,6 +26,7 @@ public class KeoCoGame : PanelMiniGame
     int _lastBeat = -1;
 
     protected override string[] FunFacts => Facts;
+    protected override bool HasWinner => _model.WinningTeam >= 0;
 
     protected override void Bind(VisualElement root) => _rope = root.Q("rope");
 
@@ -60,7 +61,7 @@ public class KeoCoGame : PanelMiniGame
         {
             _model.Tick(now, Time.unscaledDeltaTime);
             if (_model.IsOver)
-                EndRound(_model.WinningTeam < 0 ? "Hòa!" : $"{TeamName(_model.WinningTeam)} thắng!");
+                EndRound(() => _model.WinningTeam < 0 ? Bilingual.Text("Hòa!") : Bilingual.Won(TeamName(_model.WinningTeam)));
         }
 
         UpdateView(now);
@@ -140,7 +141,7 @@ public class KeoCoGame : PanelMiniGame
         }
     }
 
-    // Pullers hold the rope on their team's side, nearest the ribbon first.
+    // Pullers hold the rope on their team's side, nearest the ribbon first, leaning back.
     void BuildPullers()
     {
         foreach (var puller in _pullers) puller.RemoveFromHierarchy();
@@ -150,15 +151,16 @@ public class KeoCoGame : PanelMiniGame
         {
             int team = SeatLayout.TeamOf(id);
             int place = id / 2; // 0 = front, 1 = back (4 players)
-            float x = (team == 0 ? -1f : 1f) * (240f + place * 130f);
+            float side = team == 0 ? -1f : 1f;
 
-            var puller = new VisualElement { pickingMode = PickingMode.Ignore };
-            puller.AddToClassList("puller");
-            puller.AddToClassList($"player--p{id + 1}");
-            puller.style.translate = new Translate(x, 0f);
-            puller.Add(new Label($"P{id + 1}") { pickingMode = PickingMode.Ignore });
-            _rope.Add(puller);
-            _pullers.Add(puller);
+            var puller = new CharacterView(id);
+            puller.Root.AddToClassList("puller");
+            puller.Face(new Vector2(-side, 0f));
+            puller.AddArm();
+            puller.Root.style.translate = new Translate(side * (190f + place * 170f), 0f);
+            puller.Root.style.rotate = new Rotate(new Angle(side * 6f));
+            _rope.Add(puller.Root);
+            _pullers.Add(puller.Root);
         }
     }
 }

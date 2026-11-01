@@ -1,71 +1,19 @@
-.nguoi-go-field {
-    background-image: url("project://database/Assets/UI/Art/nguoigo-field.svg");
-}
-
-.caller-ring {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 300px;
-    height: 300px;
-    margin-left: -150px;
-    margin-top: -150px;
-    border-radius: 150px;
-    border-width: 12px;
-    border-color: var(--jade);
-    background-color: rgba(252, 244, 227, 0.75);
-    transition-property: border-color, background-color;
-    transition-duration: 120ms;
-}
-
-.caller-ring.is-watching {
-    border-color: var(--rose);
-    background-color: rgba(214, 51, 108, 0.28);
-}
-
+/* The feet stand at 72% of the stage: this must match CallerGround in NguoiGoGame.cs. */
 .caller {
     position: absolute;
     left: 50%;
-    top: 50%;
-    width: 240px;
-    height: 240px;
-    margin-left: -120px;
-    margin-top: -120px;
-    background-image: url("project://database/Assets/UI/Art/caller-vn-covered.svg");
+    top: 72%;
+    width: 170px;
+    height: 540px;
+    margin-left: -85px;
+    margin-top: -540px;
+    transform-origin: 50% 100%;
+    background-image: url("project://database/Assets/UI%20Assets/NPC_back.png");
     -unity-background-scale-mode: scale-to-fit;
 }
 
 .caller.is-watching {
-    background-image: url("project://database/Assets/UI/Art/caller-vn-watching.svg");
-}
-
-.caller.is-korean {
-    background-image: url("project://database/Assets/UI/Art/caller-kr-covered.svg");
-}
-
-.caller.is-korean.is-watching {
-    background-image: url("project://database/Assets/UI/Art/caller-kr-watching.svg");
-}
-
-/* 88px must match RunnerSize in NguoiGoGame.cs. */
-.runner {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 88px;
-    height: 88px;
-    border-radius: 44px;
-    border-width: 5px;
-    border-color: var(--paper);
-    background-color: var(--player);
-    align-items: center;
-    justify-content: center;
-}
-
-.runner Label {
-    margin: 0;
-    padding: 0;
-    font-size: 30px;
+    background-image: url("project://database/Assets/UI%20Assets/NPC.png");
 }
 
 .nguoi-go .seat-ring {

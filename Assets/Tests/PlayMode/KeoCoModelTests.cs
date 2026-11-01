@@ -9,16 +9,10 @@ public class KeoCoModelTests
         new KeoCoModel(players, settings ?? new KeoCoSettings(), Start);
 
     [Test]
-    public void FunFact_SwitchesLanguageEveryTwoSeconds()
+    public void FunFact_HasVietnameseThenKorean()
     {
-        string vietnamese = ResultsOverlay.FactAt(KeoCoGame.Facts, 0.0);
-        string korean = ResultsOverlay.FactAt(KeoCoGame.Facts, 2.0);
-
-        StringAssert.StartsWith("Bạn có biết?", vietnamese);
-        StringAssert.StartsWith("알고 있나요?", korean);
-        Assert.AreEqual(vietnamese, ResultsOverlay.FactAt(KeoCoGame.Facts, 1.99));
-        Assert.AreEqual(vietnamese, ResultsOverlay.FactAt(KeoCoGame.Facts, 4.0));
-        Assert.AreEqual(korean, ResultsOverlay.FactAt(KeoCoGame.Facts, 7.5));
+        StringAssert.StartsWith("Bạn có biết?", KeoCoGame.Facts[0]);
+        StringAssert.StartsWith("알고 있나요?", KeoCoGame.Facts[1]);
     }
 
     // Advances the model frame by frame until the given time.

@@ -81,6 +81,7 @@
     right: -24px;
     top: -24px;
     bottom: -24px;
+    background-image: url("project://database/Assets/UI%20Assets/BACKGROUND.png");
     -unity-background-scale-mode: scale-and-crop;
     transition-property: filter;
     transition-duration: 300ms;
@@ -90,6 +91,143 @@
 .is-finished .field,
 .is-finished .stage {
     filter: blur(6px) grayscale(0.35);
+}
+
+/* 170 x 210 must match CharacterView.cs. The box is wider than the art, so the feet touch its bottom edge. */
+.character {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 170px;
+    height: 210px;
+    transform-origin: 50% 100%;
+}
+
+.character-sprite {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.character--vn .character-sprite.view--front {
+    background-image: url("project://database/Assets/UI%20Assets/VN.png?fileID=-3597370680676533028&guid=d13124b112030db41982b2b230b54c3b&type=3#VN_0");
+}
+
+.character--vn .character-sprite.view--back {
+    background-image: url("project://database/Assets/UI%20Assets/VN.png?fileID=1706715371223852841&guid=d13124b112030db41982b2b230b54c3b&type=3#VN_1");
+}
+
+.character--vn .character-sprite.view--side {
+    background-image: url("project://database/Assets/UI%20Assets/VN.png?fileID=-6358601953545848336&guid=d13124b112030db41982b2b230b54c3b&type=3#VN_2");
+}
+
+.character--kr .character-sprite.view--front {
+    background-image: url("project://database/Assets/UI%20Assets/KR.png?fileID=3338144948216936465&guid=b100521414c4d154695387eb5f702911&type=3#KR_0");
+}
+
+.character--kr .character-sprite.view--back {
+    background-image: url("project://database/Assets/UI%20Assets/KR.png?fileID=5771006532081331637&guid=b100521414c4d154695387eb5f702911&type=3#KR_1");
+}
+
+.character--kr .character-sprite.view--side {
+    background-image: url("project://database/Assets/UI%20Assets/KR.png?fileID=1643026136941136614&guid=b100521414c4d154695387eb5f702911&type=3#KR_2");
+}
+
+.character--vn .character-sprite.view--side.is-pulling {
+    background-image: url("project://database/Assets/UI%20Assets/VN_side_pull.png");
+}
+
+.character--kr .character-sprite.view--side.is-pulling {
+    background-image: url("project://database/Assets/UI%20Assets/KR_side_pull.png");
+}
+
+.character-arm {
+    position: absolute;
+    left: 50%;
+    top: 54%;
+    width: 30px;
+    height: 84px;
+    margin-left: -15px;
+    transform-origin: 50% 8%;
+    rotate: -68deg;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.character--vn .character-arm {
+    background-image: url("project://database/Assets/UI%20Assets/VN.png?fileID=-6036082917614504933&guid=d13124b112030db41982b2b230b54c3b&type=3#VN_4");
+}
+
+.character--kr .character-arm {
+    background-image: url("project://database/Assets/UI%20Assets/KR.png?fileID=451867275354555222&guid=b100521414c4d154695387eb5f702911&type=3#KR_3");
+}
+
+.character--vn .character-sprite.view--front.is-cheering {
+    background-image: url("project://database/Assets/UI%20Assets/VN_front_cheer.png");
+}
+
+.character--kr .character-sprite.view--front.is-cheering {
+    background-image: url("project://database/Assets/UI%20Assets/KR_front_cheer.png");
+}
+
+.character-cup {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 120px;
+    height: 174px;
+    margin-left: -60px;
+    background-image: url("project://database/Assets/UI%20Assets/Trophy%20Cup%20%E2%80%93%20VN%20x%20KR.png?fileID=4842163755836273828&guid=957f1ecdb1c075141ba7636f88b479c4&type=3");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.character-cheer-arm {
+    position: absolute;
+    top: 112px;
+    width: 40px;
+    height: 126px;
+    margin-left: -20px;
+    transform-origin: 50% 8%;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.character-cheer-arm--left {
+    left: 52px;
+}
+
+.character-cheer-arm--right {
+    left: 118px;
+}
+
+.character--vn .character-cheer-arm {
+    background-image: url("project://database/Assets/UI%20Assets/VN.png?fileID=-6036082917614504933&guid=d13124b112030db41982b2b230b54c3b&type=3#VN_4");
+}
+
+.character--kr .character-cheer-arm {
+    background-image: url("project://database/Assets/UI%20Assets/KR.png?fileID=451867275354555222&guid=b100521414c4d154695387eb5f702911&type=3#KR_3");
+}
+
+.character-tag {
+    position: absolute;
+    left: 50%;
+    top: -38px;
+    width: 64px;
+    height: 38px;
+    margin: 0 0 0 -32px;
+    padding: 0;
+    border-radius: 19px;
+    border-width: 3px;
+    border-color: var(--paper);
+    background-color: var(--player);
+    font-size: 22px;
+    -unity-text-align: middle-center;
+}
+
+/* The cup goes where the tag usually floats, so the winner wears it on their chest. */
+.is-champion .character-tag {
+    top: 128px;
 }
 
 .seat {
@@ -116,16 +254,23 @@
     right: 0;
     top: 0;
     bottom: 0;
-    border-radius: 85px;
-    background-color: var(--player);
+    -unity-background-scale-mode: scale-to-fit;
     align-items: center;
     justify-content: center;
 }
+
+.player--p1 .seat-disc { background-image: url("project://database/Assets/UI%20Assets/Button_P1.png"); }
+.player--p2 .seat-disc { background-image: url("project://database/Assets/UI%20Assets/Button_P2.png"); }
+.player--p3 .seat-disc { background-image: url("project://database/Assets/UI%20Assets/Button_P3.png"); }
+.player--p4 .seat-disc { background-image: url("project://database/Assets/UI%20Assets/Button_P4.png"); }
 
 .seat-label {
     margin: 0;
     padding: 0;
     font-size: 48px;
+    color: var(--paper);
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: var(--ink);
 }
 
 .seat-feedback,
@@ -261,13 +406,14 @@
     margin: 0;
     padding: 0;
     font-size: 92px;
+    height: 132px;
     -unity-text-align: middle-center;
 }
 
 .result-fact {
     margin: 12px 0 28px 0;
     padding: 0;
-    min-height: 84px;
+    height: 84px;
     font-size: 30px;
     color: var(--wood);
     white-space: normal;
@@ -281,5 +427,52 @@
 
 .result-button {
     width: 340px;
+    height: 96px;
+    padding: 0;
     margin: 0 14px;
+}
+
+/* Sits beside .timer, clear of the seats in the corners. */
+.pause-button {
+    position: absolute;
+    left: 50%;
+    top: 26px;
+    width: 94px;
+    height: 94px;
+    margin: 0 0 0 91px;
+    padding: 0;
+    border-width: 0;
+    border-radius: 47px;
+}
+
+.pause-icon {
+    position: absolute;
+    left: 25px;
+    right: 25px;
+    top: 25px;
+    bottom: 25px;
+    background-image: url("project://database/Assets/UI%20Assets/B_Pause.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* See-through, so the frozen round shows behind it. */
+.pause-card {
+    width: 840px;
+    background-color: rgba(252, 244, 227, 0.72);
+    border-bottom-color: rgba(227, 207, 166, 0.72);
+}
+
+.pause-title {
+    margin-bottom: 24px;
+}
+
+.resume-icon {
+    position: absolute;
+    left: 34px;
+    top: 50%;
+    width: 32px;
+    height: 44px;
+    margin-top: -22px;
+    background-image: url("project://database/Assets/UI%20Assets/B_Play.png");
+    -unity-background-scale-mode: scale-to-fit;
 }

@@ -12,22 +12,8 @@
           <ui:VisualElement class="picker" picking-mode="Ignore">
             <ui:Label class="picker-label" text="Bao nhiêu người chơi?" picking-mode="Ignore" />
             <ui:VisualElement class="picker-options" picking-mode="Ignore">
-              <ui:Button name="twoPlayers" class="btn seat-option">
-                <ui:Label class="seat-option__label" text="2 người" picking-mode="Ignore" />
-                <ui:VisualElement class="dots" picking-mode="Ignore">
-                  <ui:VisualElement class="dot player--p1" picking-mode="Ignore" />
-                  <ui:VisualElement class="dot player--p2" picking-mode="Ignore" />
-                </ui:VisualElement>
-              </ui:Button>
-              <ui:Button name="fourPlayers" class="btn seat-option">
-                <ui:Label class="seat-option__label" text="4 người" picking-mode="Ignore" />
-                <ui:VisualElement class="dots" picking-mode="Ignore">
-                  <ui:VisualElement class="dot player--p1" picking-mode="Ignore" />
-                  <ui:VisualElement class="dot player--p2" picking-mode="Ignore" />
-                  <ui:VisualElement class="dot player--p3" picking-mode="Ignore" />
-                  <ui:VisualElement class="dot player--p4" picking-mode="Ignore" />
-                </ui:VisualElement>
-              </ui:Button>
+              <ui:Button name="twoPlayers" class="btn seat-option seat-option--two" />
+              <ui:Button name="fourPlayers" class="btn seat-option seat-option--four" />
             </ui:VisualElement>
           </ui:VisualElement>
         </ui:VisualElement>
@@ -55,6 +41,7 @@
           </ui:Button>
         </ui:VisualElement>
         <ui:Button name="tournament" class="btn btn--primary tournament">
+          <ui:VisualElement class="tournament-cup" picking-mode="Ignore" />
           <ui:Label class="tournament__title" text="Giải đấu" picking-mode="Ignore" />
           <ui:Label class="tournament__sub" text="Chơi cả 3 trò, tính điểm, lên bục vinh quang" picking-mode="Ignore" />
           <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />

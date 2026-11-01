@@ -1,7 +1,3 @@
-.da-cau-field {
-    background-image: url("project://database/Assets/UI/Art/dacau-field.svg");
-}
-
 /* Sizes must match ShuttleSize and ShadowSize in DaCauGame.cs. */
 .shuttle {
     position: absolute;
@@ -74,5 +70,9 @@
 }
 
 .seat.is-out .seat-disc {
+    opacity: 0.35;
+}
+
+.character.is-out {
     opacity: 0.35;
 }

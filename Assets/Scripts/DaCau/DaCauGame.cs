@@ -8,12 +8,15 @@ using UnityEngine.UIElements;
 public class DaCauGame : PanelMiniGame
 {
     const float CountdownSeconds = 3f;
-    const float StationInset = 150f;  // panel units from the seat button to where the shuttle lands
+    const float StationInset = 200f;  // panel units from the seat button to where the shuttle lands
     const float ShuttleSize = 120f;   // matches .shuttle in DaCauHud.uss
     const float ShadowSize = 70f;     // matches .shuttle-shadow in DaCauHud.uss
     const float WindBend = 110f;      // panel units the wind pushes the flight sideways
     const float FeatherHeight = 190f;
     const float JegiHeight = 110f;
+    const float KickSeconds = 0.4f;
+    const float KickHopHeight = 26f;
+    const float KickTiltDegrees = 24f;
 
     public static readonly string[] Facts =
     {
@@ -28,8 +31,11 @@ public class DaCauGame : PanelMiniGame
     VisualElement _shuttle;
     VisualElement _shadow;
     VisualElement _stageLayer;
+    VisualElement _playerLayer;
     Label _wind;
     VisualElement[][] _lifeDots = Array.Empty<VisualElement[]>();
+    CharacterView[] _players = Array.Empty<CharacterView>();
+    double[] _kickedAt = Array.Empty<double>();
     Vector2[] _stations = Array.Empty<Vector2>();
 
     protected override string[] FunFacts => Facts;
@@ -39,6 +45,7 @@ public class DaCauGame : PanelMiniGame
         _shuttle = root.Q("shuttle");
         _shadow = root.Q("shuttleShadow");
         _stageLayer = root.Q("stageLayer");
+        _playerLayer = root.Q("playerLayer");
         _wind = root.Q<Label>("windLabel");
         _stageLayer.RegisterCallback<GeometryChangedEvent>(_ => LayoutStations());
     }
@@ -51,6 +58,7 @@ public class DaCauGame : PanelMiniGame
         _model = new DaCauModel(playerCount, settings, _startTime, Environment.TickCount);
         _model.Missed += OnMissed;
         BuildLives();
+        BuildPlayers();
         LayoutStations();
     }
 
@@ -60,8 +68,14 @@ public class DaCauGame : PanelMiniGame
 
         switch (_model.Tap(playerId, Now))
         {
-            case KickResult.Perfect: Seats[playerId].ShowFeedback("Perfect!", "feedback--perfect", Now); break;
-            case KickResult.Good: Seats[playerId].ShowFeedback("Good", "feedback--good", Now); break;
+            case KickResult.Perfect:
+                Seats[playerId].ShowFeedback("Perfect!", "feedback--perfect", Now);
+                _kickedAt[playerId] = Now;
+                break;
+            case KickResult.Good:
+                Seats[playerId].ShowFeedback("Good", "feedback--good", Now);
+                _kickedAt[playerId] = Now;
+                break;
             case KickResult.TooEarly: Seats[playerId].ShowFeedback("Sớm quá!", "feedback--miss", Now); break;
         }
     }
@@ -79,7 +93,7 @@ public class DaCauGame : PanelMiniGame
         if (IsRunning)
         {
             _model.Tick(now);
-            if (_model.IsOver) EndRound($"P{_model.Winner + 1} thắng!");
+            if (_model.IsOver) EndRound(() => Bilingual.Won($"P{_model.Winner + 1}"));
         }
 
         UpdateView(now);
@@ -87,7 +101,11 @@ public class DaCauGame : PanelMiniGame
 
     void OnMissed(int playerId)
     {
-        if (_model.LivesOf(playerId) == 0) Seats[playerId].Root.AddToClassList("is-out");
+        if (_model.LivesOf(playerId) == 0)
+        {
+            Seats[playerId].Root.AddToClassList("is-out");
+            _players[playerId].Root.AddToClassList("is-out");
+        }
         Seats[playerId].ShowFeedback(_model.LivesOf(playerId) == 0 ? "Hết mạng!" : "Trượt!", "feedback--miss", Now);
         UpdateLives();
     }
@@ -97,7 +115,7 @@ public class DaCauGame : PanelMiniGame
         Timer.text = _model.Rally.ToString();
         CenterMessage.text = RoundOver ? "" : CountdownText(_startTime - now, "Đá!");
 
-        _wind.text = _model.Wind > 0 ? "Gió xuôi!" : _model.Wind < 0 ? "Gió ngược!" : "";
+        _wind.text = _model.Wind > 0 ? Bilingual.Text("Gió xuôi!") : _model.Wind < 0 ? Bilingual.Text("Gió ngược!") : "";
         _shuttle.EnableInClassList("is-jegi", _model.Kind == ShuttleKind.Jegi);
 
         for (int i = 0; i < Seats.Length; i++)
@@ -115,7 +133,24 @@ public class DaCauGame : PanelMiniGame
         }
 
         if (_stations.Length == 0) return;
+        PlacePlayers(now);
         PlaceShuttle(now);
+    }
+
+    void PlacePlayers(double now)
+    {
+        var stage = new Vector2(_stageLayer.resolvedStyle.width, _stageLayer.resolvedStyle.height);
+        for (int i = 0; i < _players.Length; i++)
+        {
+            float kick = Mathf.Clamp01((float)((now - _kickedAt[i]) / KickSeconds));
+            float hop = Mathf.Sin(kick * Mathf.PI) * KickHopHeight;
+            float scale = CharacterView.DepthScale(_stations[i].y / stage.y);
+            _players[i].Stand(_stations[i] + new Vector2(0f, -hop), scale);
+
+            // A kick swings back, then through toward the middle, settling as it ends.
+            float swing = -Mathf.Sin(kick * Mathf.PI * 2f) * (1f - kick) * KickTiltDegrees;
+            _players[i].Tilt(swing * Mathf.Sign(stage.x / 2f - _stations[i].x));
+        }
     }
 
     void PlaceShuttle(double now)
@@ -181,21 +216,38 @@ public class DaCauGame : PanelMiniGame
                 _lifeDots[id][life].EnableInClassList("is-lost", life >= _model.LivesOf(id));
     }
 
-    // Each player's landing spot sits just in front of their seat, toward the middle.
+    // Far players go in first, so nearer ones are drawn over them.
+    void BuildPlayers()
+    {
+        _playerLayer.Clear();
+        _players = new CharacterView[PlayerCount];
+        _kickedAt = Enumerable.Repeat(double.NegativeInfinity, PlayerCount).ToArray();
+        foreach (var seat in SeatLayout.Get(PlayerCount).OrderByDescending(seat => seat.Anchor.y))
+        {
+            var player = new CharacterView(seat.PlayerId);
+            _playerLayer.Add(player.Root);
+            _players[seat.PlayerId] = player;
+        }
+    }
+
+    // Each player's landing spot is on the ground on their side of the courtyard. Across
+    // the far and near sides they look at each other; alone on each side, across the middle.
     void LayoutStations()
     {
         var size = new Vector2(_stageLayer.resolvedStyle.width, _stageLayer.resolvedStyle.height);
         if (float.IsNaN(size.x) || size.x < 1f || PlayerCount == 0) return;
 
         var seats = SeatLayout.Get(PlayerCount);
-        var center = size / 2f;
-        _stations = seats
-            .OrderBy(seat => seat.PlayerId)
-            .Select(seat =>
-            {
-                var position = new Vector2(seat.Anchor.x * size.x, (1f - seat.Anchor.y) * size.y);
-                return position + (center - position).normalized * StationInset;
-            })
-            .ToArray();
+        _stations = new Vector2[seats.Length];
+        foreach (var seat in seats)
+        {
+            float side = Mathf.Sign(seat.Anchor.x - 0.5f);
+            _stations[seat.PlayerId] = new Vector2(
+                seat.Anchor.x * size.x - side * StationInset,
+                CharacterView.GroundOf(seat) * size.y);
+
+            float across = seat.Anchor.y - 0.5f;
+            _players[seat.PlayerId].Face(across == 0f ? new Vector2(-side, 0f) : new Vector2(0f, across));
+        }
     }
 }

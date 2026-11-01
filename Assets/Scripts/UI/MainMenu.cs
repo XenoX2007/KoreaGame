@@ -58,6 +58,7 @@ public class MainMenu : MonoBehaviour
         tournament.EnableInClassList(SoonClass, !game.TournamentReady);
         tournament.clicked += () => GameManager.Instance.StartTournament(_playerCount);
 
+        Bilingual.Bind(_root);
         SeatPanels.Reveal(_root.Q("menu"));
     }
 
