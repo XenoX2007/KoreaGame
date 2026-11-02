@@ -60,11 +60,11 @@ public class PodiumScreen : MonoBehaviour
             }
 
             int points = scores[player];
-            Bilingual.Track(column.Q<Label>(className: "podium-score"), () => Bilingual.Points(points));
+            Localization.Track(column.Q<Label>(className: "podium-score"), () => Localization.Points(points));
             column.Q<Label>(className: "podium-rank").text = ranks[player].ToString();
         }
 
-        Bilingual.Bind(root);
+        Localization.Bind(root);
         SeatPanels.Reveal(root.Q("podium"));
         _celebration = new PodiumCelebration(root.Q("rayLayer"), root.Q("confettiLayer"), everyone, champions);
     }

@@ -13,6 +13,7 @@ public class KeoCoGame : PanelMiniGame
     {
         "Bạn có biết? Năm 2015, UNESCO ghi danh kéo co là di sản chung của Việt Nam, Hàn Quốc, Campuchia và Philippines.",
         "알고 있나요? 2015년 유네스코는 줄다리기를 베트남, 한국, 캄보디아, 필리핀의 공동 유산으로 등재했습니다.",
+        "Did you know? In 2015, UNESCO inscribed tug of war as a shared heritage of Vietnam, Korea, Cambodia and the Philippines.",
     };
 
     static readonly string[] LeftChant = { "Hò", "dô", "ta!" };
@@ -61,7 +62,7 @@ public class KeoCoGame : PanelMiniGame
         {
             _model.Tick(now, Time.unscaledDeltaTime);
             if (_model.IsOver)
-                EndRound(() => _model.WinningTeam < 0 ? Bilingual.Text("Hòa!") : Bilingual.Won(TeamName(_model.WinningTeam)));
+                EndRound(() => _model.WinningTeam < 0 ? Localization.Text("Hòa!") : Localization.Won(TeamName(_model.WinningTeam)));
         }
 
         UpdateView(now);

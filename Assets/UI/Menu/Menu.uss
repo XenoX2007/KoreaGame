@@ -240,3 +240,52 @@
     padding: 0;
     color: var(--paper);
 }
+
+/* Centered between the title and the player picker. */
+.language-button {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 180px;
+    height: 170px;
+    margin-left: -90px;
+    padding: 0;
+    border-bottom-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+    align-items: center;
+}
+
+.language-globe {
+    width: 112px;
+    height: 112px;
+    background-image: url("project://database/Assets/UI%20Assets/Language%20Globe.png");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.language-name {
+    margin: 4px 0 0 0;
+    padding: 2px 16px;
+    border-radius: 18px;
+    background-color: var(--paper);
+    font-size: 26px;
+    -unity-text-align: middle-center;
+}
+
+.language-card {
+    width: 1180px;
+}
+
+.language-title {
+    margin-bottom: 24px;
+}
+
+.language-option {
+    width: 320px;
+    background-color: var(--paper-edge);
+    border-bottom-color: #C9B07F;
+}
+
+.language-option.btn--primary {
+    background-color: var(--jade);
+    border-bottom-color: var(--jade-deep);
+}

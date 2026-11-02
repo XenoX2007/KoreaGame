@@ -5,6 +5,10 @@
     <ui:VisualElement name="safeArea" class="safe-area" picking-mode="Ignore">
       <ui:VisualElement name="menu" class="menu" picking-mode="Ignore">
         <ui:VisualElement class="menu-header" picking-mode="Ignore">
+          <ui:Button name="languageButton" class="btn language-button">
+            <ui:VisualElement class="language-globe" picking-mode="Ignore" />
+            <ui:Label name="languageName" class="language-name" picking-mode="Ignore" />
+          </ui:Button>
           <ui:VisualElement class="title-block" picking-mode="Ignore">
             <ui:Label class="title" text="Sân Chơi" picking-mode="Ignore" />
             <ui:Label class="subtitle" text="마당 · Madang · 같이 놀자" picking-mode="Ignore" />
@@ -46,6 +50,12 @@
           <ui:Label class="tournament__sub" text="Chơi cả 3 trò, tính điểm, lên bục vinh quang" picking-mode="Ignore" />
           <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
         </ui:Button>
+      </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="languagePicker" class="results">
+      <ui:VisualElement class="results-card language-card" picking-mode="Ignore">
+        <ui:Label class="result-title language-title" text="Ngôn ngữ" picking-mode="Ignore" />
+        <ui:VisualElement name="languageOptions" class="result-actions" picking-mode="Ignore" />
       </ui:VisualElement>
     </ui:VisualElement>
   </ui:VisualElement>

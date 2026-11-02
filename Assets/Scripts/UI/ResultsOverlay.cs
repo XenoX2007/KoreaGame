@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 // End-of-round card shared by the mini games (ResultsOverlay.uxml). The fun fact holds one line per
-// language, Vietnamese first; buttons depend on whether this is a tournament.
+// language (Vietnamese, Korean, English); buttons depend on whether this is a tournament.
 public class ResultsOverlay
 {
     readonly VisualElement _results;
@@ -56,7 +56,7 @@ public class ResultsOverlay
     {
         if (_facts == null) return;
         _title.text = _titleText();
-        _fact.text = _facts[Bilingual.IsKorean ? 1 : 0];
+        _fact.text = Localization.Pick(_facts);
     }
 
     public static void BackToMenu()

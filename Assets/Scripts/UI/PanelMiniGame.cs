@@ -71,7 +71,7 @@ public abstract class PanelMiniGame : MiniGameBase
 
         SeatPanels.FitSafeArea(_seatLayer);
         Bind(root);
-        Bilingual.Bind(root);
+        Localization.Bind(root);
 
         if (_started)
         {
@@ -109,7 +109,7 @@ public abstract class PanelMiniGame : MiniGameBase
         if (Seats == null) return;
 
         _results.Update();
-        _togglePlayers.text = Bilingual.Text(PlayerCount == 2 ? "Đổi sang 2 đấu 2" : "Đổi sang 1 đấu 1");
+        _togglePlayers.text = Localization.Text(PlayerCount == 2 ? "Đổi sang 2 đấu 2" : "Đổi sang 1 đấu 1");
         _togglePlayers.style.display = GameManager.Instance == null && !IsRunning ? DisplayStyle.Flex : DisplayStyle.None;
         foreach (var seat in Seats) seat.UpdateFeedback(Now);
     }
@@ -160,7 +160,7 @@ public abstract class PanelMiniGame : MiniGameBase
     protected static string CountdownText(double untilStart, string go)
     {
         if (untilStart > 0) return Mathf.CeilToInt((float)untilStart).ToString();
-        return untilStart > -0.8 ? Bilingual.Text(go) : "";
+        return untilStart > -0.8 ? Localization.Text(go) : "";
     }
 
     void TogglePlayerCount()

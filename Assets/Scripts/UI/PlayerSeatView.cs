@@ -34,7 +34,7 @@ public class PlayerSeatView
     {
         if (_feedbackClass != null) Feedback.RemoveFromClassList(_feedbackClass);
         Feedback.AddToClassList(className);
-        Feedback.text = Bilingual.Text(text);
+        Feedback.text = Localization.Text(text);
         _feedbackClass = className;
         _feedbackAt = now;
     }

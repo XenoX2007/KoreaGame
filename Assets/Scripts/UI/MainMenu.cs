@@ -58,7 +58,8 @@ public class MainMenu : MonoBehaviour
         tournament.EnableInClassList(SoonClass, !game.TournamentReady);
         tournament.clicked += () => GameManager.Instance.StartTournament(_playerCount);
 
-        Bilingual.Bind(_root);
+        BindLanguagePicker();
+        Localization.Bind(_root);
         SeatPanels.Reveal(_root.Q("menu"));
     }
 
@@ -68,6 +69,48 @@ public class MainMenu : MonoBehaviour
         card.SetEnabled(playable);
         card.EnableInClassList(SoonClass, !playable);
         card.clicked += () => GameManager.Instance.StartSingle(scene, _playerCount);
+    }
+
+    // Each language is written in its own language, so anyone can find theirs. Tapping outside the card closes it.
+    void BindLanguagePicker()
+    {
+        var picker = _root.Q("languagePicker");
+        var options = _root.Q("languageOptions");
+        options.Clear();
+
+        foreach (Language language in System.Enum.GetValues(typeof(Language)))
+        {
+            var option = new Button { name = $"language{language}", text = Localization.NativeNames[(int)language] };
+            option.AddToClassList("btn");
+            option.AddToClassList("result-button");
+            option.AddToClassList("language-option");
+            option.clicked += () =>
+            {
+                Localization.Current = language;
+                ClosePicker(picker);
+            };
+            options.Add(option);
+        }
+
+        _root.Q<Button>("languageButton").clicked += () =>
+        {
+            foreach (Language language in System.Enum.GetValues(typeof(Language)))
+                options.Q($"language{language}").EnableInClassList("btn--primary", language == Localization.Current);
+            picker.style.display = DisplayStyle.Flex;
+            SeatPanels.Reveal(picker);
+        };
+        picker.RegisterCallback<ClickEvent>(click =>
+        {
+            if (click.target == picker) ClosePicker(picker);
+        });
+
+        Localization.Track(_root.Q<Label>("languageName"), () => Localization.NativeNames[(int)Localization.Current]);
+    }
+
+    static void ClosePicker(VisualElement picker)
+    {
+        picker.style.display = DisplayStyle.None;
+        picker.RemoveFromClassList("is-in");
     }
 
     void SelectPlayerCount(int count)

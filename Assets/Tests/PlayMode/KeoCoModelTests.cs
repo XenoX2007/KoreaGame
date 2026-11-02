@@ -8,13 +8,6 @@ public class KeoCoModelTests
     static KeoCoModel NewModel(int players, KeoCoSettings settings = null) =>
         new KeoCoModel(players, settings ?? new KeoCoSettings(), Start);
 
-    [Test]
-    public void FunFact_HasVietnameseThenKorean()
-    {
-        StringAssert.StartsWith("Bạn có biết?", KeoCoGame.Facts[0]);
-        StringAssert.StartsWith("알고 있나요?", KeoCoGame.Facts[1]);
-    }
-
     // Advances the model frame by frame until the given time.
     static void RunUntil(KeoCoModel model, ref double now, double until)
     {

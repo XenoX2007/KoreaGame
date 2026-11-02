@@ -22,6 +22,7 @@ public class DaCauGame : PanelMiniGame
     {
         "Bạn có biết? Cầu đá Việt Nam thường làm từ lông gà, còn jegi của Hàn Quốc làm từ đồng xu bọc giấy hoặc vải.",
         "알고 있나요? 베트남의 제기는 주로 닭 깃털로 만들고, 한국의 제기는 엽전을 종이나 천으로 싸서 만듭니다.",
+        "Did you know? A Vietnamese shuttlecock is usually made of chicken feathers, while a Korean jegi is a coin wrapped in paper or cloth.",
     };
 
     [SerializeField] DaCauSettings settings = new DaCauSettings();
@@ -93,7 +94,7 @@ public class DaCauGame : PanelMiniGame
         if (IsRunning)
         {
             _model.Tick(now);
-            if (_model.IsOver) EndRound(() => Bilingual.Won($"P{_model.Winner + 1}"));
+            if (_model.IsOver) EndRound(() => Localization.Won($"P{_model.Winner + 1}"));
         }
 
         UpdateView(now);
@@ -115,7 +116,7 @@ public class DaCauGame : PanelMiniGame
         Timer.text = _model.Rally.ToString();
         CenterMessage.text = RoundOver ? "" : CountdownText(_startTime - now, "Đá!");
 
-        _wind.text = _model.Wind > 0 ? Bilingual.Text("Gió xuôi!") : _model.Wind < 0 ? Bilingual.Text("Gió ngược!") : "";
+        _wind.text = _model.Wind > 0 ? Localization.Text("Gió xuôi!") : _model.Wind < 0 ? Localization.Text("Gió ngược!") : "";
         _shuttle.EnableInClassList("is-jegi", _model.Kind == ShuttleKind.Jegi);
 
         for (int i = 0; i < Seats.Length; i++)

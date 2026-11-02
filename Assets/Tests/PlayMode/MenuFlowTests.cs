@@ -89,6 +89,30 @@ public class MenuFlowTests : InputTestFixture
     }
 
     [UnityTest]
+    public IEnumerator ChoosingALanguage_ChangesTheWholeMenu()
+    {
+        var before = Localization.Current;
+        Localization.Current = Language.Vietnamese;
+        yield return LoadMenu();
+        var root = MenuRoot();
+        var tournamentTitle = root.Q<Label>(className: "tournament__title");
+        Assert.AreEqual("Giải đấu", tournamentTitle.text);
+
+        yield return Tap(root.Q("languageButton"), 1);
+        yield return new WaitForSecondsRealtime(0.4f);
+        Assert.AreEqual(DisplayStyle.Flex, root.Q("languagePicker").resolvedStyle.display);
+
+        yield return Tap(root.Q("languageEnglish"), 2);
+        yield return new WaitForSecondsRealtime(0.2f);
+
+        Assert.AreEqual(Language.English, Localization.Current);
+        Assert.AreEqual(DisplayStyle.None, root.Q("languagePicker").resolvedStyle.display);
+        Assert.AreEqual("Tournament", tournamentTitle.text);
+        Assert.AreEqual("English", root.Q<Label>("languageName").text);
+        Localization.Current = before;
+    }
+
+    [UnityTest]
     public IEnumerator ResultsButtons_ReplayTheRoundAndReturnToTheMenu()
     {
         yield return LoadMenu();
@@ -184,7 +208,7 @@ public class MenuFlowTests : InputTestFixture
         int touch = 2;
         foreach (var scene in new[] { "NguoiGo", "KeoCo", "DaCau" })
         {
-            yield return new WaitForSecondsRealtime(0.5f);
+            yield return WaitForScene(scene);
             Assert.AreEqual(scene, SceneManager.GetActiveScene().name);
 
             var game = Object.FindAnyObjectByType<PanelMiniGame>();
@@ -193,14 +217,25 @@ public class MenuFlowTests : InputTestFixture
 
             Assert.AreEqual(DisplayStyle.Flex, hud.Q("continueButton").resolvedStyle.display);
             Assert.AreEqual(DisplayStyle.None, hud.Q("playAgainButton").resolvedStyle.display);
+            var continueButton = hud.Q("continueButton");
+            var underFinger = continueButton.panel.Pick(continueButton.worldBound.center);
+            Assert.AreEqual(continueButton, underFinger, $"{underFinger?.name} {underFinger?.GetType().Name} {string.Join(".", underFinger?.GetClasses() ?? new string[0])} is over Continue");
             yield return Tap(hud.Q("continueButton"), touch++);
         }
 
-        yield return new WaitForSecondsRealtime(0.5f);
+        yield return WaitForScene("Podium");
         Assert.AreEqual("Podium", SceneManager.GetActiveScene().name);
         Assert.AreEqual(SessionMode.Tournament, GameManager.Instance.Mode);
         CollectionAssert.IsNotEmpty(GameManager.Instance.Scores);
         Assert.Greater(GameManager.Instance.Scores[0], 0, "Each game should have added tournament points");
+    }
+
+    // Scene loads take longer some runs, so wait for the scene itself rather than a fixed time.
+    static IEnumerator WaitForScene(string scene)
+    {
+        float giveUp = Time.realtimeSinceStartup + 5f;
+        while (SceneManager.GetActiveScene().name != scene && Time.realtimeSinceStartup < giveUp) yield return null;
+        yield return null;
     }
 
     static VisualElement HudOf(PanelMiniGame game) =>

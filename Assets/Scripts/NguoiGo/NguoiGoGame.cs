@@ -16,6 +16,7 @@ public class NguoiGoGame : PanelMiniGame
     {
         "Bạn có biết? Ở Hàn Quốc, người hô trò này đọc \"Hoa mugunghwa đã nở\". Mugunghwa là quốc hoa của Hàn Quốc.",
         "알고 있나요? 베트남에서는 이 놀이를 \"하나, 둘, 셋, 나무 사람!\"이라는 뜻의 \"Một hai ba người gỗ\"라고 외칩니다.",
+        "Did you know? In Korea the caller chants \"The mugunghwa has bloomed\", and in Vietnam \"One, two, three, wooden person!\"",
     };
 
     [SerializeField] NguoiGoSettings settings = new NguoiGoSettings();
@@ -88,11 +89,11 @@ public class NguoiGoGame : PanelMiniGame
     string ResultTitle()
     {
         var winners = _model.Winners();
-        if (winners.Count == 0) return Bilingual.Text("Hòa!");
+        if (winners.Count == 0) return Localization.Text("Hòa!");
 
         var names = new string[winners.Count];
         for (int i = 0; i < names.Length; i++) names[i] = $"P{winners[i] + 1}";
-        return Bilingual.Won(string.Join(" + ", names));
+        return Localization.Won(string.Join(" + ", names));
     }
 
     void OnCaught(int playerId) => Seats[playerId].ShowFeedback("Bị bắt!", "feedback--miss", Now);
@@ -112,7 +113,7 @@ public class NguoiGoGame : PanelMiniGame
         float twitch = phase == CallerPhase.Tell ? 3f : phase == CallerPhase.Fake ? 7f : 0f;
         _caller.style.rotate = new Rotate(new Angle(Mathf.Sin((float)now * 42f) * twitch));
 
-        string chant = !IsRunning ? "" : phase == CallerPhase.Watching ? Bilingual.Text("Đứng im!") : _model.SungText(now);
+        string chant = !IsRunning ? "" : phase == CallerPhase.Watching ? Localization.Text("Đứng im!") : _model.SungText(now);
         foreach (var seat in Seats)
         {
             seat.Chant.text = chant;
