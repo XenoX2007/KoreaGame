@@ -83,12 +83,13 @@ public class LocalizationTests
         CollectionAssert.IsEmpty(missing);
     }
 
-    // Letters that spill onto a second atlas are silently dropped from the text, so new Korean text
-    // needs the font rebuilt: see Korean text in CLAUDE.md.
+    // The Korean font fills its atlas at runtime, and letters that spill onto a second atlas page are
+    // silently dropped from the text. So every Hangul letter in the game must fit on one page: this
+    // fills a fresh copy of the font with the same settings, leaving the real asset untouched.
     [Test]
-    public void EveryKoreanLetterIsInTheFontsOnlyAtlas()
+    public void EveryKoreanLetterFitsOnOneAtlasPage()
     {
-        var font = AssetDatabase.LoadAssetAtPath<UnityEngine.TextCore.Text.FontAsset>("Assets/UI/Fonts/JuaSDF.asset");
+        var jua = AssetDatabase.LoadAssetAtPath<UnityEngine.TextCore.Text.FontAsset>("Assets/UI/Fonts/JuaSDF.asset");
         var sources = System.IO.Directory.GetFiles("Assets/Scripts", "*.cs", System.IO.SearchOption.AllDirectories)
             .Concat(System.IO.Directory.GetFiles("Assets/UI", "*.uxml", System.IO.SearchOption.AllDirectories));
         var letters = sources
@@ -97,10 +98,20 @@ public class LocalizationTests
             .Distinct()
             .ToArray();
 
-        font.HasCharacters(new string(letters), out uint[] missing, false, false);
-
-        CollectionAssert.IsEmpty(missing ?? new uint[0]);
-        Assert.AreEqual(1, font.atlasTextures.Length);
+        var fresh = UnityEngine.TextCore.Text.FontAsset.CreateFontAsset(
+            jua.sourceFontFile, (int)jua.faceInfo.pointSize, jua.atlasPadding, jua.atlasRenderMode,
+            jua.atlasWidth, jua.atlasHeight, UnityEngine.TextCore.Text.AtlasPopulationMode.Dynamic, true);
+        try
+        {
+            Assert.IsTrue(fresh.TryAddCharacters(new string(letters), out string missing), $"Not in the font: {missing}");
+            Assert.AreEqual(1, fresh.atlasTextures.Length, $"{letters.Length} Hangul letters need a bigger atlas");
+        }
+        finally
+        {
+            foreach (var texture in fresh.atlasTextures) Object.DestroyImmediate(texture);
+            Object.DestroyImmediate(fresh.material);
+            Object.DestroyImmediate(fresh);
+        }
     }
 #endif
 }

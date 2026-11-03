@@ -1,13 +1,20 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 // Kéo Co (tug of war), 1v1 or 2v2. Tap on the chant beat to pull; teammates hitting the
 // same beat together get the "Đồng lòng" bonus. The HUD is UI Toolkit (Assets/UI/KeoCo).
+// Online the host's model is the only one that pulls; joining phones keep a copy only for the beats,
+// draw the rope where the host says, and show their judgements as the host sends them.
 public class KeoCoGame : PanelMiniGame
 {
     const float CountdownSeconds = 3f;
     const float TrackHalfWidth = 560f; // panel units from center to each win line; matches .win-line in KeoCoHud.uss
+    const float RopeSmoothing = 18f;   // per second, how fast a joining phone's rope catches up with the host's
+    const string RopeMessage = "keoco.rope"; // host -> clients: rope position
+    const string TapMessage = "keoco.tap";   // host -> clients: a judged tap
+    const string EndMessage = "keoco.end";   // host -> clients: the winning team, -1 for a draw
 
     public static readonly string[] Facts =
     {
@@ -25,9 +32,15 @@ public class KeoCoGame : PanelMiniGame
     VisualElement _rope;
     readonly List<VisualElement> _pullers = new List<VisualElement>();
     int _lastBeat = -1;
+    float _remoteRope;
+    float _shownRope;
+    int _remoteWinner = -1;
 
     protected override string[] FunFacts => Facts;
-    protected override bool HasWinner => _model.WinningTeam >= 0;
+    protected override bool HasWinner => WinningTeam >= 0;
+
+    int WinningTeam => IsOnlineClient ? _remoteWinner : _model.WinningTeam;
+    float RopePosition => IsOnlineClient ? _shownRope : _model.RopePosition;
 
     protected override void Bind(VisualElement root) => _rope = root.Q("rope");
 
@@ -35,17 +48,64 @@ public class KeoCoGame : PanelMiniGame
     {
         base.Setup(playerCount);
 
-        _model = new KeoCoModel(playerCount, settings, Now + CountdownSeconds);
         _lastBeat = -1;
+        _remoteRope = _shownRope = 0f;
+        _remoteWinner = -1;
+        // Online the round waits for the host to say when the countdown starts.
+        _model = IsOnline ? null : new KeoCoModel(playerCount, settings, Now + CountdownSeconds);
         BuildPullers();
+    }
+
+    protected override void OnRoundScheduled(double countdownStart) =>
+        _model = new KeoCoModel(PlayerCount, settings, countdownStart + CountdownSeconds);
+
+    protected override void ListenOnline()
+    {
+        if (IsOnlineHost) return;
+
+        Listen(RopeMessage, (sender, reader) => reader.ReadValueSafe(out _remoteRope));
+        Listen(TapMessage, (sender, reader) =>
+        {
+            reader.ReadValueSafe(out int player);
+            reader.ReadValueSafe(out int judgement);
+            reader.ReadValueSafe(out bool synced);
+            ShowFeedback(new TapResult(player, (TapJudgement)judgement, synced, 0f));
+        });
+        Listen(EndMessage, (sender, reader) =>
+        {
+            reader.ReadValueSafe(out _remoteWinner);
+            _shownRope = _remoteRope;
+            EndRound(ResultTitle);
+        });
     }
 
     public override void OnPlayerInput(int playerId, bool pressed)
     {
-        if (!pressed || RoundOver || _model == null) return;
+        if (pressed) Pull(playerId, Now);
+    }
 
-        var result = _model.Tap(playerId, Now);
-        if (result.Judgement != TapJudgement.Ignored) ShowFeedback(result);
+    protected override void OnRemotePlayerInput(int playerId, bool pressed, double time)
+    {
+        if (pressed) Pull(playerId, time);
+    }
+
+    void Pull(int playerId, double time)
+    {
+        if (RoundOver || _model == null) return;
+
+        var result = _model.Tap(playerId, time);
+        if (result.Judgement == TapJudgement.Ignored) return;
+        ShowFeedback(result);
+
+        if (IsOnlineHost)
+        {
+            OnlineSession.Instance.Broadcast(TapMessage, (ref FastBufferWriter writer) =>
+            {
+                writer.WriteValueSafe(result.PlayerId);
+                writer.WriteValueSafe((int)result.Judgement);
+                writer.WriteValueSafe(result.Synced);
+            });
+        }
     }
 
     public override int[] GetRanking() => RanksFromScores(_model.PlayerScores());
@@ -58,19 +118,40 @@ public class KeoCoGame : PanelMiniGame
 
         if (!IsRunning && !RoundOver && now >= _model.StartTime) Begin();
 
-        if (IsRunning)
+        if (IsOnlineClient)
+        {
+            _shownRope = Mathf.Lerp(_shownRope, _remoteRope, 1f - Mathf.Exp(-RopeSmoothing * Time.unscaledDeltaTime));
+        }
+        else if (IsRunning)
         {
             _model.Tick(now, Time.unscaledDeltaTime);
+            if (IsOnlineHost) SendRope();
             if (_model.IsOver)
-                EndRound(() => _model.WinningTeam < 0 ? Localization.Text("Hòa!") : Localization.Won(TeamName(_model.WinningTeam)));
+            {
+                if (IsOnlineHost)
+                {
+                    int winner = _model.WinningTeam;
+                    OnlineSession.Instance.Broadcast(EndMessage, (ref FastBufferWriter writer) => writer.WriteValueSafe(winner));
+                }
+                EndRound(ResultTitle);
+            }
         }
 
         UpdateView(now);
     }
 
+    // Every frame and unreliable: a lost position is replaced by the next one.
+    void SendRope()
+    {
+        float rope = _model.RopePosition;
+        OnlineSession.Instance.Broadcast(RopeMessage, (ref FastBufferWriter writer) => writer.WriteValueSafe(rope), NetworkDelivery.UnreliableSequenced);
+    }
+
+    string ResultTitle() => WinningTeam < 0 ? Localization.Text("Hòa!") : Localization.Won(TeamName(WinningTeam));
+
     void UpdateView(double now)
     {
-        _rope.style.translate = new Translate(_model.RopePosition * TrackHalfWidth, 0f);
+        _rope.style.translate = new Translate(RopePosition * TrackHalfWidth, 0f);
 
         double left = _model.EndTime - now;
         Timer.text = Mathf.CeilToInt((float)System.Math.Max(0.0, System.Math.Min(left, settings.roundSeconds))).ToString();
@@ -96,6 +177,8 @@ public class KeoCoGame : PanelMiniGame
 
         foreach (var seat in Seats)
         {
+            if (seat == null) continue;
+
             // The ring closes onto the button exactly on the beat: tap when they meet.
             float ringScale = Mathf.Lerp(1.7f, 1f, phase);
             seat.Ring.style.display = showBeat ? DisplayStyle.Flex : DisplayStyle.None;
@@ -113,6 +196,7 @@ public class KeoCoGame : PanelMiniGame
     {
         for (int i = 0; i < Seats.Length; i++)
         {
+            if (Seats[i] == null) continue;
             var chant = SeatLayout.TeamOf(i) == 0 ? LeftChant : RightChant;
             Seats[i].Chant.text = chant[beat % chant.Length];
         }
@@ -129,16 +213,16 @@ public class KeoCoGame : PanelMiniGame
         var seat = Seats[result.PlayerId];
         if (result.Synced)
         {
-            seat.ShowFeedback("Đồng lòng!", "feedback--sync", Now);
-            Seats[SeatLayout.TeammateOf(result.PlayerId, PlayerCount)].ShowFeedback("Đồng lòng!", "feedback--sync", Now);
+            seat?.ShowFeedback("Đồng lòng!", "feedback--sync", Now);
+            Seats[SeatLayout.TeammateOf(result.PlayerId, PlayerCount)]?.ShowFeedback("Đồng lòng!", "feedback--sync", Now);
             return;
         }
 
         switch (result.Judgement)
         {
-            case TapJudgement.Perfect: seat.ShowFeedback("Perfect!", "feedback--perfect", Now); break;
-            case TapJudgement.Good: seat.ShowFeedback("Good", "feedback--good", Now); break;
-            default: seat.ShowFeedback("Miss", "feedback--miss", Now); break;
+            case TapJudgement.Perfect: seat?.ShowFeedback("Perfect!", "feedback--perfect", Now); break;
+            case TapJudgement.Good: seat?.ShowFeedback("Good", "feedback--good", Now); break;
+            default: seat?.ShowFeedback("Miss", "feedback--miss", Now); break;
         }
     }
 

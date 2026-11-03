@@ -16,9 +16,11 @@ public abstract class MiniGameBase : MonoBehaviour
 
     protected virtual void Start()
     {
-        int playerCount = GameManager.Instance != null ? GameManager.Instance.PlayerCount : editorPlayerCount;
+        var game = GameManager.Instance;
+        int playerCount = game != null ? game.PlayerCount : editorPlayerCount;
         var router = PlayerInputRouter.Instance;
-        router.Configure(playerCount);
+        if (game != null && game.Mode == SessionMode.Online) router.ConfigureSolo(game.LocalPlayerId);
+        else router.Configure(playerCount);
         router.PlayerInput += RouteInput;
         Setup(playerCount);
     }
@@ -32,8 +34,11 @@ public abstract class MiniGameBase : MonoBehaviour
     // Releases still pass while paused, so a finger lifted then doesn't count as held afterwards.
     void RouteInput(int playerId, bool pressed)
     {
-        if (!pressed || !IsPaused) OnPlayerInput(playerId, pressed);
+        if (!pressed || !IsPaused) HandlePlayerInput(playerId, pressed);
     }
+
+    // Where a press from this device goes; online, a joining phone sends it to the host instead.
+    protected virtual void HandlePlayerInput(int playerId, bool pressed) => OnPlayerInput(playerId, pressed);
 
     public virtual void Setup(int playerCount)
     {

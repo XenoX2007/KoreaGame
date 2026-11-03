@@ -289,3 +289,121 @@
     background-color: var(--jade);
     border-bottom-color: var(--jade-deep);
 }
+
+/* Under the globe, between the title and the player picker. */
+.online-button {
+    position: absolute;
+    left: 50%;
+    top: 186px;
+    width: 340px;
+    height: 84px;
+    margin-left: -170px;
+    padding: 0;
+    font-size: 34px;
+}
+
+.online-card {
+    width: 1220px;
+}
+
+.online-title {
+    height: 112px;
+}
+
+.online-status {
+    height: 48px;
+    margin: 0 0 16px 0;
+    padding: 0;
+    font-size: 30px;
+    color: var(--wood);
+    -unity-text-align: middle-center;
+}
+
+.online-section {
+    display: none;
+    align-items: center;
+}
+
+.online-code-label {
+    margin: 0;
+    padding: 0;
+    font-size: 28px;
+    color: var(--wood);
+}
+
+.online-code {
+    margin: 0 0 12px 0;
+    padding: 0;
+    font-size: 96px;
+    letter-spacing: 10px;
+    white-space: nowrap;
+    color: var(--rose-deep);
+}
+
+.online-slots {
+    flex-direction: row;
+    margin-bottom: 26px;
+}
+
+.online-slot {
+    width: 96px;
+    height: 96px;
+    margin: 0 10px;
+    border-radius: 48px;
+    background-color: var(--player);
+    color: var(--paper);
+    font-size: 36px;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--ink);
+}
+
+/* A seat nobody has taken yet. */
+.online-slot.is-empty {
+    opacity: 0.25;
+}
+
+.online-action {
+    width: 330px;
+    height: 96px;
+    padding: 0;
+    margin: 0 12px;
+}
+
+.online-action:disabled {
+    opacity: 0.45;
+}
+
+.online-close {
+    margin-top: 26px;
+    height: 76px;
+    width: 300px;
+    padding: 0;
+    font-size: 32px;
+    background-color: var(--paper-edge);
+    border-bottom-color: #C9B07F;
+}
+
+.code-field {
+    width: 560px;
+    margin: 0 0 24px 0;
+}
+
+.code-field .unity-base-text-field__input {
+    height: 110px;
+    padding: 0 24px;
+    border-width: 4px;
+    border-radius: 26px;
+    border-color: var(--paper-edge);
+    background-color: #FFFFFF;
+    color: var(--ink);
+    font-size: 64px;
+    letter-spacing: 12px;
+    -unity-text-align: middle-center;
+    --unity-cursor-color: var(--ink);
+    --unity-selection-color: rgba(31, 122, 109, 0.3);
+}
+
+.code-field:focus .unity-base-text-field__input {
+    border-color: var(--jade);
+}

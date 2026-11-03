@@ -36,9 +36,12 @@ public class ResultsOverlay
         _titleText = title;
         _facts = facts;
 
-        bool tournament = GameManager.Instance != null && GameManager.Instance.Mode == SessionMode.Tournament;
+        var mode = GameManager.Instance != null ? GameManager.Instance.Mode : SessionMode.Single;
+        bool tournament = mode == SessionMode.Tournament;
+        // Online only the host can start another round; everyone can leave.
+        bool canReplay = !tournament && (mode != SessionMode.Online || OnlineSession.IsHost);
         _continue.style.display = tournament ? DisplayStyle.Flex : DisplayStyle.None;
-        _playAgain.style.display = tournament ? DisplayStyle.None : DisplayStyle.Flex;
+        _playAgain.style.display = canReplay ? DisplayStyle.Flex : DisplayStyle.None;
         _backToMenu.style.display = tournament ? DisplayStyle.None : DisplayStyle.Flex;
 
         _results.style.display = DisplayStyle.Flex;
@@ -61,7 +64,8 @@ public class ResultsOverlay
 
     public static void BackToMenu()
     {
-        if (GameManager.Instance != null) GameManager.Instance.ReturnToMenu();
+        if (OnlineSession.Instance != null && OnlineSession.Instance.State != OnlineState.Offline) OnlineSession.Instance.LeaveToMenu();
+        else if (GameManager.Instance != null) GameManager.Instance.ReturnToMenu();
         else SceneManager.LoadScene("Menu");
     }
 }

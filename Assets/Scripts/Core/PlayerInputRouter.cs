@@ -29,6 +29,7 @@ public class PlayerInputRouter : MonoBehaviour
     readonly int[] _sourceCount = new int[SeatLayout.MaxPlayers];
     readonly bool[] _keyHeld = new bool[SeatLayout.MaxPlayers];
     Seat[] _seats = Array.Empty<Seat>();
+    int _soloPlayer = -1;
 
     public static PlayerInputRouter Instance
     {
@@ -60,6 +61,16 @@ public class PlayerInputRouter : MonoBehaviour
         ReleaseAll();
         _seats = SeatLayout.Get(playerCount);
         PlayerCount = playerCount;
+        _soloPlayer = -1;
+    }
+
+    // Online each phone has one player, so a touch anywhere (or Space, in the Editor) is that player.
+    public void ConfigureSolo(int playerId)
+    {
+        ReleaseAll();
+        _seats = new[] { new Seat(playerId, new Rect(0f, 0f, 1f, 1f), Vector2.zero, 0f) };
+        PlayerCount = 1;
+        _soloPlayer = playerId;
     }
 
     public bool IsPressed(int playerId) => _sourceCount[playerId] > 0;
@@ -116,14 +127,21 @@ public class PlayerInputRouter : MonoBehaviour
         var keyboard = Keyboard.current;
         if (keyboard == null) return;
 
-        for (int i = 0; i < PlayerCount; i++)
+        if (_soloPlayer >= 0)
         {
-            bool held = keyboard[PlayerKeys[i]].isPressed;
-            if (held == _keyHeld[i]) continue;
-            _keyHeld[i] = held;
-            if (held) Press(i);
-            else Release(i);
+            PollKey(keyboard[Key.Space].isPressed, _soloPlayer);
+            return;
         }
+
+        for (int i = 0; i < PlayerCount; i++) PollKey(keyboard[PlayerKeys[i]].isPressed, i);
+    }
+
+    void PollKey(bool held, int player)
+    {
+        if (held == _keyHeld[player]) return;
+        _keyHeld[player] = held;
+        if (held) Press(player);
+        else Release(player);
     }
 
     // Lets you test touch zones with the mouse in the Editor (one pointer only).

@@ -6,6 +6,7 @@ public enum SessionMode
 {
     Single,
     Tournament,
+    Online,
 }
 
 // Lives across scenes; owns the player count, the session mode and tournament scores.
@@ -21,6 +22,9 @@ public class GameManager : MonoBehaviour
     public SessionMode Mode { get; private set; }
     public int[] Scores { get; private set; } = Array.Empty<int>();
     public int[] LastRanking { get; private set; } = Array.Empty<int>();
+
+    // Online, which player this phone is (each phone has one player).
+    public int LocalPlayerId { get; private set; }
 
     int _stage;
 
@@ -52,6 +56,14 @@ public class GameManager : MonoBehaviour
     {
         BeginSession(SessionMode.Tournament, playerCount);
         SceneManager.LoadScene(tournamentScenes[0]);
+    }
+
+    // Called by OnlineSession on every phone when the host starts the game.
+    public void StartOnline(string scene, int playerCount, int localPlayerId)
+    {
+        BeginSession(SessionMode.Online, playerCount);
+        LocalPlayerId = localPlayerId;
+        SceneManager.LoadScene(scene);
     }
 
     // Called by MiniGameBase.Finish().
@@ -90,5 +102,6 @@ public class GameManager : MonoBehaviour
         Scores = new int[playerCount];
         LastRanking = Array.Empty<int>();
         _stage = 0;
+        LocalPlayerId = 0;
     }
 }

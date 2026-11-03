@@ -9,6 +9,7 @@
             <ui:VisualElement class="language-globe" picking-mode="Ignore" />
             <ui:Label name="languageName" class="language-name" picking-mode="Ignore" />
           </ui:Button>
+          <ui:Button name="onlineButton" class="btn btn--accent online-button" text="Chơi online" />
           <ui:VisualElement class="title-block" picking-mode="Ignore">
             <ui:Label class="title" text="Sân Chơi" picking-mode="Ignore" />
             <ui:Label class="subtitle" text="마당 · Madang · 같이 놀자" picking-mode="Ignore" />
@@ -56,6 +57,31 @@
       <ui:VisualElement class="results-card language-card" picking-mode="Ignore">
         <ui:Label class="result-title language-title" text="Ngôn ngữ" picking-mode="Ignore" />
         <ui:VisualElement name="languageOptions" class="result-actions" picking-mode="Ignore" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="onlinePanel" class="results">
+      <ui:VisualElement class="results-card online-card" picking-mode="Ignore">
+        <ui:Label class="result-title online-title" text="Chơi online" picking-mode="Ignore" />
+        <ui:Label name="onlineStatus" class="online-status" picking-mode="Ignore" />
+        <ui:VisualElement name="onlineChoose" class="result-actions" picking-mode="Ignore">
+          <ui:Button name="hostButton" class="btn btn--primary result-button" text="Tạo phòng" />
+          <ui:Button name="joinButton" class="btn btn--accent result-button" text="Vào phòng" />
+        </ui:VisualElement>
+        <ui:VisualElement name="onlineJoin" class="online-section" picking-mode="Ignore">
+          <ui:TextField name="codeField" class="code-field" max-length="10" />
+          <ui:Button name="joinConfirmButton" class="btn btn--primary result-button" text="Vào" />
+        </ui:VisualElement>
+        <ui:VisualElement name="onlineRoom" class="online-section" picking-mode="Ignore">
+          <ui:Label class="online-code-label" text="Mã phòng" picking-mode="Ignore" />
+          <ui:Label name="roomCode" class="online-code" picking-mode="Ignore" />
+          <ui:VisualElement name="onlineSlots" class="online-slots" picking-mode="Ignore" />
+          <ui:VisualElement class="result-actions" picking-mode="Ignore">
+            <ui:Button name="shareButton" class="btn btn--accent online-action" text="Chia sẻ" />
+            <ui:Button name="copyButton" class="btn btn--accent online-action" text="Sao chép" />
+            <ui:Button name="startButton" class="btn btn--primary online-action" text="Bắt đầu" />
+          </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:Button name="onlineCloseButton" class="btn online-close" />
       </ui:VisualElement>
     </ui:VisualElement>
   </ui:VisualElement>

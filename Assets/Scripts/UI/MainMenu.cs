@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-// Main menu: pick 2 or 4 players, then a mini game or the tournament.
+// Main menu: pick 2 or 4 players, then a mini game, the tournament, or online play (OnlinePanel).
 // Cards unlock on their own once their scene is added to the build.
 // GameManager lives on its own object: a duplicate destroys its whole GameObject on returning here.
 [RequireComponent(typeof(PanelRenderer))]
@@ -15,10 +15,15 @@ public class MainMenu : MonoBehaviour
     Button _fourPlayers;
     int _playerCount;
     bool _started;
+    OnlinePanel _online;
 
     void Awake() => GetComponent<PanelRenderer>().RegisterUIReloadCallback(OnUiLoaded);
 
-    void OnDestroy() => GetComponent<PanelRenderer>().UnregisterUIReloadCallback(OnUiLoaded);
+    void OnDestroy()
+    {
+        GetComponent<PanelRenderer>().UnregisterUIReloadCallback(OnUiLoaded);
+        _online?.Dispose();
+    }
 
     void Start()
     {
@@ -60,6 +65,9 @@ public class MainMenu : MonoBehaviour
 
         BindLanguagePicker();
         Localization.Bind(_root);
+        // After Bind, which would otherwise keep resetting the card's own changing labels.
+        _online?.Dispose();
+        _online = new OnlinePanel(_root, () => _playerCount);
         SeatPanels.Reveal(_root.Q("menu"));
     }
 

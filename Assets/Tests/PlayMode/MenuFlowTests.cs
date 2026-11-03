@@ -112,6 +112,35 @@ public class MenuFlowTests : InputTestFixture
         Localization.Current = before;
     }
 
+    // Stays offline: a code too short to be real is caught before anything is sent.
+    [UnityTest]
+    public IEnumerator OnlineCard_OpensToHostOrJoin_AndRejectsABadCode()
+    {
+        var before = Localization.Current;
+        Localization.Current = Language.Vietnamese;
+        yield return LoadMenu();
+        var root = MenuRoot();
+
+        yield return Tap(root.Q("onlineButton"), 1);
+        yield return new WaitForSecondsRealtime(0.4f);
+        Assert.AreEqual(DisplayStyle.Flex, root.Q("onlinePanel").resolvedStyle.display);
+        Assert.AreEqual(DisplayStyle.Flex, root.Q("onlineChoose").resolvedStyle.display);
+
+        yield return Tap(root.Q("joinButton"), 2);
+        Assert.AreEqual(DisplayStyle.Flex, root.Q("onlineJoin").resolvedStyle.display);
+
+        root.Q<TextField>("codeField").value = "ab";
+        yield return Tap(root.Q("joinConfirmButton"), 3);
+        yield return new WaitForSecondsRealtime(0.2f);
+
+        Assert.AreEqual(OnlineState.Offline, OnlineSession.Instance.State);
+        Assert.AreEqual("Nhập mã phòng", root.Q<Label>("onlineStatus").text);
+
+        yield return Tap(root.Q("onlineCloseButton"), 4);
+        Assert.AreEqual(DisplayStyle.None, root.Q("onlinePanel").resolvedStyle.display);
+        Localization.Current = before;
+    }
+
     [UnityTest]
     public IEnumerator ResultsButtons_ReplayTheRoundAndReturnToTheMenu()
     {
