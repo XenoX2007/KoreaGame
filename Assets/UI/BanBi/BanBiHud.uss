@@ -1,0 +1,231 @@
+/* Top-down square. 600 x 600 and top: 42% must match ZoneHalf (300) and ZoneCenterY in BanBiGame.cs. */
+.zone {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    width: 600px;
+    height: 600px;
+    margin-left: -300px;
+    margin-top: -300px;
+    border-width: 10px;
+    border-radius: 10px;
+    border-color: var(--ink);
+    background-color: #EBD7A8;
+}
+
+/* Size must match MarbleSize in BanBiGame.cs (2 x marbleRadius x ZoneHalf = 42). */
+.marble {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 21px;
+    border-width: 2px;
+    border-color: var(--ink);
+}
+
+/* The white rim inside the dark outline. */
+.marble-rim {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 19px;
+    border-width: 3px;
+    border-color: #FFFFFF;
+}
+
+.marble--red {
+    background-color: #E5383B;
+}
+
+.marble--blue {
+    background-color: #2B6CF6;
+}
+
+.marble-shine {
+    position: absolute;
+    left: 7px;
+    top: 6px;
+    width: 11px;
+    height: 11px;
+    border-radius: 6px;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Offset (4, 5) by BanBiGame. */
+.marble-shadow {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 21px;
+    background-color: rgba(59, 42, 26, 0.35);
+}
+
+.aim-dot {
+    position: absolute;
+    left: -5px;
+    top: -5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: var(--ink);
+}
+
+.aim-dot.is-over {
+    opacity: 0.3;
+}
+
+/* A point at the fingertips, placed by BanBiGame; the pieces hang below it. */
+.hand {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+}
+
+/* The arm slices hang down with the hand at the bottom, so turn them to point up at the square. */
+.hand-sprite {
+    position: absolute;
+    left: -35px;
+    top: 0;
+    width: 70px;
+    height: 186px;
+    rotate: 180deg;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.hand--vn .hand-sprite {
+    background-image: url("project://database/Assets/UI%20Assets/VN.png?fileID=-6036082917614504933&guid=d13124b112030db41982b2b230b54c3b&type=3#VN_4");
+}
+
+.hand--kr .hand-sprite {
+    background-image: url("project://database/Assets/UI%20Assets/KR.png?fileID=451867275354555222&guid=b100521414c4d154695387eb5f702911&type=3#KR_3");
+}
+
+.hand-shadow {
+    translate: 6px 6px;
+    opacity: 0.4;
+    -unity-background-image-tint-color: #000000;
+}
+
+.hand-name {
+    position: absolute;
+    left: 46px;
+    top: 40px;
+    width: 72px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+    border-radius: 22px;
+    border-width: 3px;
+    border-color: var(--paper);
+    font-size: 26px;
+    color: var(--paper);
+    -unity-text-align: middle-center;
+}
+
+.hand--vn .hand-name {
+    background-color: #E5383B;
+}
+
+.hand--kr .hand-name {
+    background-color: #2B6CF6;
+}
+
+/* Beside the square, on each team's side. */
+.team-count {
+    position: absolute;
+    top: 42%;
+    width: 170px;
+    height: 70px;
+    margin: -35px 0 0 0;
+    padding: 0;
+    border-radius: 35px;
+    font-size: 36px;
+    color: var(--paper);
+    -unity-text-align: middle-center;
+}
+
+.team-count--vn {
+    left: 50%;
+    margin-left: -500px;
+    background-color: #E5383B;
+}
+
+.team-count--kr {
+    left: 50%;
+    margin-left: 330px;
+    background-color: #2B6CF6;
+}
+
+.timer--turn {
+    font-size: 30px;
+}
+
+.hint {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 26px;
+    margin: 0;
+    padding: 0;
+    font-size: 32px;
+    color: var(--paper);
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: var(--ink);
+}
+
+/* Placeholder die above the seat disc (TODO(art): Die.png faces). */
+.die {
+    position: absolute;
+    left: 45px;
+    top: -112px;
+    width: 80px;
+    height: 80px;
+    margin: 0;
+    padding: 0;
+    border-radius: 16px;
+    border-width: 5px;
+    border-color: var(--ink);
+    background-color: var(--paper);
+    font-size: 50px;
+    -unity-text-align: middle-center;
+}
+
+.die.is-stopped {
+    border-color: var(--gold-deep);
+    background-color: var(--gold);
+}
+
+.seat--duel .die {
+    left: 185px;
+    top: 45px;
+}
+
+.order-badge {
+    position: absolute;
+    right: -8px;
+    top: -8px;
+    width: 56px;
+    height: 56px;
+    margin: 0;
+    padding: 0;
+    border-radius: 28px;
+    border-width: 4px;
+    border-color: var(--paper);
+    background-color: var(--ink);
+    color: var(--paper);
+    font-size: 30px;
+    -unity-text-align: middle-center;
+}
+
+.seat.is-waiting .seat-disc {
+    opacity: 0.5;
+}

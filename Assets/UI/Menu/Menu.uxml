@@ -44,11 +44,18 @@
             <ui:Label class="card-korean" text="제기차기" picking-mode="Ignore" />
             <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
           </ui:Button>
+          <ui:Button name="cardBanBi" class="btn game-card game-card--fourth">
+            <ui:VisualElement class="card-icon card-icon--marble" picking-mode="Ignore" />
+            <ui:Label class="card-name" text="Bắn Bi" picking-mode="Ignore" />
+            <ui:Label class="card-story" text="Búng bi ra khỏi vòng" picking-mode="Ignore" />
+            <ui:Label class="card-korean" text="구슬치기" picking-mode="Ignore" />
+            <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
+          </ui:Button>
         </ui:VisualElement>
         <ui:Button name="tournament" class="btn btn--primary tournament">
           <ui:VisualElement class="tournament-cup" picking-mode="Ignore" />
           <ui:Label class="tournament__title" text="Giải đấu" picking-mode="Ignore" />
-          <ui:Label class="tournament__sub" text="Chơi cả 3 trò, tính điểm, lên bục vinh quang" picking-mode="Ignore" />
+          <ui:Label class="tournament__sub" text="Chơi cả 4 trò, tính điểm, lên bục vinh quang" picking-mode="Ignore" />
           <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
         </ui:Button>
       </ui:VisualElement>

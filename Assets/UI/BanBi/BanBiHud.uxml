@@ -1,0 +1,31 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:Template src="../ResultsOverlay.uxml" name="ResultsOverlay" />
+  <ui:Template src="../PauseOverlay.uxml" name="PauseOverlay" />
+  <ui:Style src="BanBiHud.uss" />
+  <ui:VisualElement name="banBiHud" class="app ban-bi" picking-mode="Ignore">
+    <ui:VisualElement name="field" class="field" picking-mode="Ignore" />
+    <ui:VisualElement name="stageLayer" class="app stage" picking-mode="Ignore">
+      <ui:VisualElement name="zone" class="zone" picking-mode="Ignore" />
+      <ui:VisualElement name="aimDots" class="app" picking-mode="Ignore" />
+      <ui:VisualElement name="marbleLayer" class="app" picking-mode="Ignore" />
+      <ui:VisualElement name="hand" class="hand" picking-mode="Ignore">
+        <ui:VisualElement class="hand-sprite hand-shadow" picking-mode="Ignore" />
+        <ui:VisualElement class="hand-sprite" picking-mode="Ignore" />
+        <ui:Label name="handName" class="hand-name" picking-mode="Ignore" />
+      </ui:VisualElement>
+      <ui:VisualElement name="heldMarble" class="marble" picking-mode="Ignore">
+        <ui:VisualElement class="marble-rim" picking-mode="Ignore" />
+        <ui:VisualElement class="marble-shine" picking-mode="Ignore" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="seatLayer" class="safe-area" picking-mode="Ignore" />
+    <ui:Label name="timer" class="timer" picking-mode="Ignore" />
+    <ui:Label name="countVN" class="team-count team-count--vn" picking-mode="Ignore" />
+    <ui:Label name="countKR" class="team-count team-count--kr" picking-mode="Ignore" />
+    <ui:Label name="centerMessage" class="center-message" picking-mode="Ignore" />
+    <ui:Label name="hint" class="hint" text="Giữ để kéo, thả để búng" picking-mode="Ignore" />
+    <ui:Button name="togglePlayers" class="btn toggle-players" />
+    <ui:Instance template="ResultsOverlay" class="app" picking-mode="Ignore" />
+    <ui:Instance template="PauseOverlay" class="app" picking-mode="Ignore" />
+  </ui:VisualElement>
+</ui:UXML>

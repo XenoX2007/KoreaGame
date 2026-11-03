@@ -123,6 +123,11 @@
     transition-delay: 240ms, 240ms, 0s;
 }
 
+.game-card--fourth {
+    border-top-color: var(--p2);
+    transition-delay: 330ms, 330ms, 0s;
+}
+
 .is-in .game-card {
     opacity: 1;
     translate: 0 0;
@@ -157,6 +162,17 @@
 
 .card-icon--shuttlecock {
     background-image: url("project://database/Assets/UI/Art/icon-shuttlecock.svg");
+}
+
+/* Placeholder marble until Bắn Bi has its icon art. */
+.card-icon--marble {
+    width: 96px;
+    height: 96px;
+    margin: 18px 0;
+    border-radius: 48px;
+    border-width: 6px;
+    border-color: #2D6FD1;
+    background-color: var(--p2);
 }
 
 .card-name {

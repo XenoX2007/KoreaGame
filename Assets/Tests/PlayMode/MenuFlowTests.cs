@@ -89,6 +89,22 @@ public class MenuFlowTests : InputTestFixture
     }
 
     [UnityTest]
+    public IEnumerator TappingTheBanBiCard_StartsBanBi()
+    {
+        yield return LoadMenu();
+        var root = MenuRoot();
+
+        yield return Tap(root.Q("twoPlayers"), 1);
+        yield return Tap(root.Q("cardBanBi"), 2);
+        yield return WaitForScene("BanBi");
+
+        Assert.AreEqual("BanBi", SceneManager.GetActiveScene().name);
+        var game = Object.FindAnyObjectByType<BanBiGame>();
+        Assert.AreEqual(2, game.PlayerCount);
+        while (!game.IsRunning) yield return null;
+    }
+
+    [UnityTest]
     public IEnumerator ChoosingALanguage_ChangesTheWholeMenu()
     {
         var before = Localization.Current;
@@ -235,7 +251,7 @@ public class MenuFlowTests : InputTestFixture
         yield return Tap(root.Q("tournament"), 1);
 
         int touch = 2;
-        foreach (var scene in new[] { "NguoiGo", "KeoCo", "DaCau" })
+        foreach (var scene in new[] { "NguoiGo", "KeoCo", "DaCau", "BanBi" })
         {
             yield return WaitForScene(scene);
             Assert.AreEqual(scene, SceneManager.GetActiveScene().name);

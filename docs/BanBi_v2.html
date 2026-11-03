@@ -1,0 +1,184 @@
+<title>Bắn Bi – Guseul-chigi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Mali:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: the top-down play square is the hero; below it the turn, the rules and what changed from v1. Tokens from the game's Madang.uss. */
+:root {
+  --ink: #3B2A1A; --paper: #FCF4E3; --paper-edge: #E3CFA6; --card: #FFFBF2;
+  --sand: #EAD8B1; --chalk: #4A3622; --muted: #7A6650;
+  --red: #E5383B; --blue: #2B6CF6; --gold: #F2B233; --jade: #1F7A6D; --rose: #D6336C;
+  --skin: #F1C9A0; --code-bg: #F3E7CE;
+  --display: "Jua", "Mali", system-ui, sans-serif; --body: "Mali", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ink: #F4E8D2; --paper: #1E1812; --paper-edge: #3A2E22; --card: #29211A; --muted: #B5A288;
+  --sand: #D9C59C; --chalk: #2A1E12; --gold: #F5C25A; --jade: #4FBFAE; --rose: #F06A95; --code-bg: #332920; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --ink: #F4E8D2; --paper: #1E1812; --paper-edge: #3A2E22; --card: #29211A; --muted: #B5A288;
+  --sand: #D9C59C; --chalk: #2A1E12; --gold: #F5C25A; --jade: #4FBFAE; --rose: #F06A95; --code-bg: #332920; color-scheme: dark }
+
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 900px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 48px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; line-height: 1.15; text-wrap: balance; margin: 0; }
+h2 { font-size: 30px; } h3 { font-size: 20px; }
+p { margin: 0; max-width: 68ch; }
+code { font-family: var(--mono); font-size: .86em; background: var(--code-bg); padding: 1px 6px; border-radius: 6px; }
+.label { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+section { display: flex; flex-direction: column; gap: 16px; }
+
+.hero { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
+@media (max-width: 720px) { .hero { grid-template-columns: 1fr; } }
+.hero > div { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.hero h1 { font-size: clamp(44px, 8vw, 68px); }
+.hero h1 small { display: block; font-size: .5em; color: var(--rose); }
+.ver { align-self: flex-start; background: var(--gold); color: #3B2A1A; font-family: var(--display); border-radius: 999px; padding: 2px 12px; font-size: 15px; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { background: var(--card); border: 1px solid var(--paper-edge); border-radius: 999px; padding: 3px 12px; font-size: 14px; font-weight: 600; }
+.view svg { width: 100%; height: auto; display: block; max-width: 420px; margin: 0 auto; }
+.view text { font-family: var(--display); }
+.caption { font-size: 13px; color: var(--muted); text-align: center; }
+
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.step { background: var(--card); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; border-bottom: 5px solid var(--paper-edge); }
+.step .n { font-family: var(--display); color: var(--rose); font-size: 15px; }
+.step p { font-size: 15px; }
+
+.control { background: var(--card); border-radius: 18px; padding: 18px; border: 1px solid var(--paper-edge); overflow-x: auto; }
+.control svg { display: block; min-width: 600px; width: 100%; height: auto; }
+.control text { font-family: var(--body); }
+
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 520px; background: var(--card); border-radius: 14px; overflow: hidden; }
+th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--paper-edge); vertical-align: top; }
+th { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+.dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: -2px; margin-right: 8px; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35); }
+
+.win { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.win > div { display: flex; flex-direction: column; gap: 4px; padding-top: 12px; border-top: 3px solid var(--gold); min-width: 0; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+.grid2 > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.changes li b { font-weight: 700; }
+.note { background: var(--card); border-left: 5px solid var(--rose); border-radius: 10px; padding: 14px 16px; }
+footer { font-size: 13px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <span class="ver">Version 2</span>
+      <h1>Bắn Bi <small>구슬치기 · Guseul-chigi</small></h1>
+      <p>Top-down team marbles. Red is Vietnam, blue is Korea. One hand below the square slides along the edge. Stop it, pull back and flick to knock the other team's marbles out of the zone.</p>
+      <div class="tags">
+        <span class="tag">1v1 or 2v2</span><span class="tag">3 marbles per team</span><span class="tag">Slide · hold · release</span><span class="tag">~2–3 min</span>
+      </div>
+    </div>
+    <div class="view">
+      <svg viewBox="0 0 360 400" role="img" aria-label="Top-down view: a square zone with three red and three blue marbles, a hand below the square holding a red marble, and a dashed aim line going straight up into the zone.">
+        <rect x="40" y="20" width="280" height="280" rx="6" fill="var(--sand)" stroke="var(--chalk)" stroke-width="5"/>
+        <g stroke="#fff" stroke-width="3">
+          <circle cx="110" cy="80" r="14" fill="var(--blue)"/><circle cx="92" cy="150" r="14" fill="var(--blue)"/><circle cx="150" cy="118" r="14" fill="var(--blue)"/>
+          <circle cx="232" cy="96" r="14" fill="var(--red)"/><circle cx="200" cy="176" r="14" fill="var(--red)"/><circle cx="262" cy="190" r="14" fill="var(--red)"/>
+        </g>
+        <g fill="#fff" opacity=".7"><circle cx="105" cy="75" r="4"/><circle cx="87" cy="145" r="4"/><circle cx="145" cy="113" r="4"/><circle cx="227" cy="91" r="4"/><circle cx="195" cy="171" r="4"/><circle cx="257" cy="185" r="4"/></g>
+        <line x1="190" y1="320" x2="190" y2="40" stroke="var(--chalk)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 12"/>
+        <path d="M120 338 H300" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 6"/>
+        <path d="M112 338 l10 -6 v12 z M308 338 l-10 -6 v12 z" fill="var(--muted)"/>
+        <g transform="translate(190 330)">
+          <path d="M-26 70 V20 Q-30 0 -18 -6 Q-14 -18 -4 -14 Q2 -22 10 -16 Q18 -20 22 -10 Q32 -8 28 8 L26 70 Z" fill="var(--skin)" stroke="var(--chalk)" stroke-width="3"/>
+          <circle cx="0" cy="-12" r="12" fill="var(--red)" stroke="#fff" stroke-width="3"/>
+        </g>
+        <rect x="208" y="356" width="36" height="22" rx="11" fill="var(--red)"/>
+        <text x="226" y="372" font-size="14" fill="#fff" text-anchor="middle">P1</text>
+      </svg>
+      <p class="caption">The hand art in the game is VN_4 on red's turns and KR_3 on blue's turns.</p>
+    </div>
+  </header>
+
+  <section>
+    <h2>How a round goes</h2>
+    <div class="flow">
+      <div class="step"><span class="n">1 · Dice</span><h3>Roll for order</h3><p>Everyone taps to stop their die. The highest goes first, then turns alternate between the teams.</p></div>
+      <div class="step"><span class="n">2 · Setup</span><h3>3 + 3 marbles</h3><p>Three red and three blue marbles are spread randomly inside the square.</p></div>
+      <div class="step"><span class="n">3 · Turn</span><h3>Your team's hand</h3><p>The Vietnamese hand with a red marble on red's turn, the Korean hand with a blue marble on blue's turn. It's always in the same place, and your seat glows.</p></div>
+      <div class="step"><span class="n">4 · Resolve</span><h3>Marbles stop</h3><p>Marbles outside the square are removed. Your shot marble stays where it stopped.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>One button: slide, pull, flick</h2>
+    <p>The hand slides back and forth along the bottom edge. Press to stop it where you want, hold to pull back, and release to shoot straight up. The dashed line grows with power to show about where the marble will stop. Dots past the top edge fade out, which means too much power.</p>
+    <div class="control">
+      <svg viewBox="0 0 640 190" role="img" aria-label="Timeline: the hand slides while the button is up; press stops it; while held, power rises to full at 1.2 seconds then falls to zero at 2.4 seconds; release flicks.">
+        <line x1="20" y1="150" x2="620" y2="150" stroke="var(--muted)" stroke-width="1.5"/>
+        <path d="M20 95 q30 -40 60 0 t60 0 t60 0" fill="none" stroke="var(--jade)" stroke-width="3"/>
+        <text x="40" y="45" font-size="14" fill="var(--jade)" font-weight="700">hand slides</text>
+        <line x1="200" y1="30" x2="200" y2="160" stroke="var(--ink)" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="206" y="30" font-size="14" fill="var(--ink)" font-weight="700">press: stop the hand</text>
+        <path d="M200 150 L380 60 L560 150" fill="none" stroke="var(--gold)" stroke-width="4" stroke-linejoin="round"/>
+        <text x="350" y="50" font-size="14" fill="var(--ink)" font-weight="700">full power</text>
+        <circle cx="330" cy="85" r="7" fill="var(--rose)"/>
+        <text x="250" y="110" font-size="14" fill="var(--rose)" font-weight="700">release: flick</text>
+        <text x="194" y="175" font-size="12" fill="var(--muted)">0 s</text>
+        <text x="368" y="175" font-size="12" fill="var(--muted)">1.2 s</text>
+        <text x="548" y="175" font-size="12" fill="var(--muted)">2.4 s</text>
+        <text x="575" y="140" font-size="12" fill="var(--muted)">auto at 4 s</text>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <h2>After the marbles stop</h2>
+    <p>A marble is out when its center is outside the square.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>What happened</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td><span class="dot" style="background:var(--red)"></span>Your shot stops inside the square</td><td>It stays and becomes one of your team's marbles.</td></tr>
+          <tr><td><span class="dot" style="background:var(--red);opacity:.5"></span>Your shot falls short or goes out the far side</td><td>That marble is lost. “Hụt!”</td></tr>
+          <tr><td><span class="dot" style="background:var(--blue)"></span>You knock a rival marble out</td><td>It's removed, and you get a bonus shot, up to 2 in a row.</td></tr>
+          <tr><td><span class="dot" style="background:var(--red)"></span>You knock your own team's marble out</td><td>It's removed. No bonus.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Winning</h2>
+    <div class="win">
+      <div><h3>Empty square</h3><p>After any shot, a team with no marbles left in the square loses right away. If both teams are empty, the round is a draw.</p></div>
+      <div><h3>Shot limit</h3><p>Each team gets 8 regular shots; in 2v2 that's 4 each. After that, the team with more marbles in the square wins.</p></div>
+      <div><h3>Tiebreak</h3><p>The team with the marble closest to the center wins. If that is still tied, the round is a draw.</p></div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div>
+      <h2>Easy to see</h2>
+      <ul>
+        <li>The square is light sand with a thick dark chalk border.</li>
+        <li>The marbles are bright red and strong blue, with a white rim and a thin dark outline.</li>
+        <li>The hand gets a soft shadow behind it, and a team-colored “P1” chip under it.</li>
+        <li>Counters at the top show how many marbles each team has in the square, like VN ● 3 and KR ● 3.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>What changed from v1</h2>
+      <ul class="changes">
+        <li><b>View:</b> top-down square instead of a side-on ring with characters</li>
+        <li><b>Marbles:</b> 3 per team instead of neutrals plus one per player</li>
+        <li><b>Aim:</b> slide along the edge instead of a swinging arrow</li>
+        <li><b>Shots:</b> marbles stay in the zone, so it fills up</li>
+        <li><b>Winning:</b> count marbles instead of points and eliminations</li>
+      </ul>
+    </div>
+  </section>
+
+  <p class="note"><b>Art to add:</b> VN_4 and KR_3 aren't in the project's Assets folder yet. Copy them into <code>Assets/UI Assets/BanBi/</code> so the game can use them.</p>
+
+  <footer>Version 2, approved 3 Nov 2026. The change list for Claude Code is in docs/BanBi_v2.md, and v1 stays in docs/BanBi.md.</footer>
+</div>

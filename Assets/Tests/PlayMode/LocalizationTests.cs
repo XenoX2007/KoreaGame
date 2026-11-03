@@ -58,7 +58,7 @@ public class LocalizationTests
     [Test]
     public void EveryFunFactComesInEveryLanguage()
     {
-        foreach (var facts in new[] { KeoCoGame.Facts, NguoiGoGame.Facts, DaCauGame.Facts })
+        foreach (var facts in new[] { KeoCoGame.Facts, NguoiGoGame.Facts, DaCauGame.Facts, BanBiGame.Facts })
         {
             Assert.AreEqual(3, facts.Length);
             StringAssert.StartsWith("Bạn có biết?", facts[(int)Language.Vietnamese]);

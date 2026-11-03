@@ -57,6 +57,7 @@ public class MainMenu : MonoBehaviour
         BindGameCard(_root.Q<Button>("cardKeoCo"), "KeoCo");
         BindGameCard(_root.Q<Button>("cardNguoiGo"), "NguoiGo");
         BindGameCard(_root.Q<Button>("cardDaCau"), "DaCau");
+        BindGameCard(_root.Q<Button>("cardBanBi"), "BanBi");
 
         var tournament = _root.Q<Button>("tournament");
         tournament.SetEnabled(game.TournamentReady);

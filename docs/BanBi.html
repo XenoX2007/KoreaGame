@@ -1,0 +1,187 @@
+<title>Bắn Bi – Guseul-chigi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Mali:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a chalk-ring play mat — one column; the ring diagram is the hero, then the turn as a strip, scoring as a table. Tokens from the game's Madang.uss. */
+:root {
+  --ink: #3B2A1A; --paper: #FCF4E3; --paper-edge: #E3CFA6; --card: #FFFBF2; --dirt: #E8D3A8; --dirt-line: #B8925E;
+  --muted: #7A6650; --rose: #D6336C; --gold: #F2B233; --jade: #1F7A6D;
+  --p1: #E94F4F; --p2: #3D8BFF; --p3: #3CC57A; --p4: #E0A21E; --glass: #BFE3E8;
+  --code-bg: #F3E7CE;
+  --display: "Jua", "Mali", system-ui, sans-serif; --body: "Mali", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ink: #F4E8D2; --paper: #1E1812; --paper-edge: #3A2E22; --card: #29211A; --dirt: #4A3A28; --dirt-line: #C9A578;
+  --muted: #B5A288; --rose: #F06A95; --gold: #F5C25A; --jade: #4FBFAE; --glass: #8FC7CF; --code-bg: #332920; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --ink: #F4E8D2; --paper: #1E1812; --paper-edge: #3A2E22; --card: #29211A; --dirt: #4A3A28; --dirt-line: #C9A578;
+  --muted: #B5A288; --rose: #F06A95; --gold: #F5C25A; --jade: #4FBFAE; --glass: #8FC7CF; --code-bg: #332920; color-scheme: dark }
+
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 900px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 48px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; line-height: 1.15; text-wrap: balance; margin: 0; }
+h2 { font-size: 30px; } h3 { font-size: 20px; }
+p { margin: 0; max-width: 68ch; }
+code { font-family: var(--mono); font-size: .86em; background: var(--code-bg); padding: 1px 6px; border-radius: 6px; }
+.label { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+section { display: flex; flex-direction: column; gap: 16px; }
+
+.hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: center; }
+@media (max-width: 720px) { .hero { grid-template-columns: 1fr; } }
+.hero > div { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.hero h1 { font-size: clamp(44px, 8vw, 68px); }
+.hero h1 small { display: block; font-size: .5em; color: var(--rose); }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { background: var(--card); border: 1px solid var(--paper-edge); border-radius: 999px; padding: 3px 12px; font-size: 14px; font-weight: 600; }
+.ring svg { width: 100%; max-width: 100%; height: auto; display: block; }
+.ring text { font-family: var(--display); }
+
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.step { background: var(--card); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; border-bottom: 5px solid var(--paper-edge); }
+.step .n { font-family: var(--display); color: var(--rose); font-size: 15px; }
+.step p { font-size: 15px; }
+
+.control { background: var(--card); border-radius: 18px; padding: 18px; border: 1px solid var(--paper-edge); overflow-x: auto; }
+.control svg { display: block; min-width: 600px; width: 100%; height: auto; }
+.control text { font-family: var(--body); }
+
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 520px; background: var(--card); border-radius: 14px; overflow: hidden; }
+th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--paper-edge); vertical-align: top; }
+th { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+.dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: -2px; margin-right: 8px; }
+.pts { font-family: var(--display); font-size: 18px; color: var(--jade); white-space: nowrap; }
+
+.win { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.win > div { display: flex; flex-direction: column; gap: 4px; padding-top: 12px; border-top: 3px solid var(--gold); min-width: 0; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+.grid2 > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.facts li span { display: block; font-size: 14px; color: var(--muted); }
+.note { background: var(--card); border-left: 5px solid var(--rose); border-radius: 10px; padding: 14px 16px; }
+footer { font-size: 13px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <span class="label">Madang · new mini game · round 4</span>
+      <h1>Bắn Bi <small>구슬치기 · Guseul-chigi</small></h1>
+      <p>Turn-based ring marbles. Flick your marble with one button, knock the neutral marbles out for points, and knock the other team's marbles out to eliminate them.</p>
+      <div class="tags">
+        <span class="tag">1v1 or 2v2</span><span class="tag">VN vs KR teams</span><span class="tag">Hold &amp; release</span><span class="tag">~2–3 min</span>
+      </div>
+    </div>
+    <div class="ring">
+      <svg viewBox="0 0 360 300" role="img" aria-label="Top-down sketch of the ring: five neutral marbles in the middle, four colored shooter marbles on the ring edge near each seat, and an aim arrow from player 1.">
+        <ellipse cx="180" cy="150" rx="150" ry="118" fill="var(--dirt)" stroke="var(--dirt-line)" stroke-width="3" stroke-dasharray="10 6"/>
+        <g fill="var(--glass)" stroke="var(--dirt-line)" stroke-width="1.5">
+          <circle cx="168" cy="140" r="11"/><circle cx="196" cy="132" r="11"/><circle cx="184" cy="162" r="11"/><circle cx="156" cy="168" r="11"/><circle cx="210" cy="160" r="11"/>
+        </g>
+        <g stroke="rgba(0,0,0,.25)" stroke-width="2">
+          <circle cx="70" cy="80" r="12" fill="var(--p1)"/><circle cx="290" cy="80" r="12" fill="var(--p2)"/>
+          <circle cx="70" cy="220" r="12" fill="var(--p3)"/><circle cx="290" cy="220" r="12" fill="var(--p4)"/>
+        </g>
+        <path d="M82 88 L150 128" stroke="var(--rose)" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 8"/>
+        <path d="M150 128 l-12 -1 l6 -9 z" fill="var(--rose)"/>
+        <text x="40" y="40" font-size="15" fill="var(--ink)">P1 · VN</text>
+        <text x="262" y="40" font-size="15" fill="var(--ink)">P2 · KR</text>
+        <text x="40" y="276" font-size="15" fill="var(--ink)">P3 · VN</text>
+        <text x="262" y="276" font-size="15" fill="var(--ink)">P4 · KR</text>
+      </svg>
+    </div>
+  </header>
+
+  <section>
+    <h2>How a round goes</h2>
+    <div class="flow">
+      <div class="step"><span class="n">1 · Dice</span><h3>Roll for order</h3><p>Each seat's die spins. Tap to stop it, or it stops by itself after 3 s. The highest roll goes first, then turns alternate between teams. Players who tie roll again.</p></div>
+      <div class="step"><span class="n">2 · Setup</span><h3>Ring is ready</h3><p>Five glass marbles sit in the middle. Each shooter marble starts on the ring edge nearest its seat.</p></div>
+      <div class="step"><span class="n">3 · Turn</span><h3>Your hand appears</h3><p>A Vietnamese sleeve for the left team, a hanbok sleeve for the right. The other seats dim. You have 10 s to shoot.</p></div>
+      <div class="step"><span class="n">4 · Resolve</span><h3>Marbles stop</h3><p>Check what left the ring, add points, give bonus shots, then pass the turn to the next player.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>One button, three moments</h2>
+    <p>The aim arrow sweeps ±45° toward the ring center, or toward the nearest rival if your marble is already inside. Press to lock the aim, hold to pull back, and release to flick. Power rises for 1.2 s and then falls again, so holding too long gives a weak shot.</p>
+    <div class="control">
+      <svg viewBox="0 0 640 190" role="img" aria-label="Timeline: aim sweeps while the button is up; press locks the aim; while held, power rises to full at 1.2 seconds then falls to zero at 2.4 seconds; release flicks.">
+        <line x1="20" y1="150" x2="620" y2="150" stroke="var(--muted)" stroke-width="1.5"/>
+        <path d="M20 95 q30 -40 60 0 t60 0 t60 0" fill="none" stroke="var(--jade)" stroke-width="3"/>
+        <text x="40" y="45" font-size="14" fill="var(--jade)" font-weight="700">aim sweeps</text>
+        <line x1="200" y1="30" x2="200" y2="160" stroke="var(--ink)" stroke-width="2" stroke-dasharray="4 4"/>
+        <text x="206" y="30" font-size="14" fill="var(--ink)" font-weight="700">press: lock aim</text>
+        <path d="M200 150 L380 60 L560 150" fill="none" stroke="var(--gold)" stroke-width="4" stroke-linejoin="round"/>
+        <text x="350" y="50" font-size="14" fill="var(--ink)" font-weight="700">full power</text>
+        <circle cx="330" cy="85" r="7" fill="var(--rose)"/>
+        <text x="250" y="110" font-size="14" fill="var(--rose)" font-weight="700">release: flick</text>
+        <text x="194" y="175" font-size="12" fill="var(--muted)">0 s</text>
+        <text x="368" y="175" font-size="12" fill="var(--muted)">1.2 s</text>
+        <text x="548" y="175" font-size="12" fill="var(--muted)">2.4 s</text>
+        <text x="575" y="140" font-size="12" fill="var(--muted)">auto at 4 s</text>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <h2>What leaving the ring means</h2>
+    <p>A marble is out once its center crosses the ring line. A marble that stays inside takes its next shot from where it stopped.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Marble knocked out</th><th>Points</th><th>What happens</th></tr></thead>
+        <tbody>
+          <tr><td><span class="dot" style="background:var(--glass)"></span>Neutral glass marble</td><td class="pts">+1</td><td>Removed. The shooter gets a bonus shot, up to 2 in a row.</td></tr>
+          <tr><td><span class="dot" style="background:var(--p2)"></span>A rival's marble</td><td class="pts">+2</td><td>That player is eliminated for the rest of the round. Bonus shot.</td></tr>
+          <tr><td><span class="dot" style="background:var(--p1)"></span>Your own or your teammate's</td><td class="pts">0</td><td>Not eliminated. It shoots again from its seat edge next turn.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Winning</h2>
+    <div class="win">
+      <div><h3>Clear the rivals</h3><p>If every rival marble has been knocked out, your team wins right away.</p></div>
+      <div><h3>Turn limit</h3><p>Otherwise the round ends after 6 turns per player. The team with more points wins. Bonus shots don't count toward the limit.</p></div>
+      <div><h3>Tiebreak</h3><p>The team with the marble closest to the center wins. If that is still tied, the round is a draw.</p></div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div>
+      <h2>Art</h2>
+      <ul>
+        <li>Vietnamese and Korean hands, each with a pulled-back pose and a flick pose</li>
+        <li>Marbles in the four seat colors, a clear glass marble, ground shadows</li>
+        <li>A scratched dirt ring, drawn side-on to fit the 60% horizon</li>
+        <li>Die faces 1–6, the aim arrow and the power arc</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Sound</h2>
+      <ul>
+        <li>Marble clack, louder on harder hits</li>
+        <li>Rolling loop that follows speed</li>
+        <li>A drop when a marble leaves the ring</li>
+        <li>Dice rattle and stop</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Fun facts</h2>
+    <ul class="facts">
+      <li>Bắn bi là trò chơi sân trường quen thuộc khắp Việt Nam.<span>구슬치기는 베트남 학교 운동장에서도 흔한 놀이예요. · Marbles is a schoolyard staple all over Vietnam.</span></li>
+      <li>구슬치기는 1970–80년대 한국 골목의 대표 놀이였어요.<span>Bắn bi từng là trò chơi đầu ngõ tiêu biểu ở Hàn Quốc những năm 1970–80. · Guseul-chigi was the classic alley game in 1970s–80s Korea.</span></li>
+      <li>Cả hai nước đều búng bi bằng ngón cái.<span>두 나라 모두 엄지손가락으로 구슬을 튕겨요. · In both countries you flick the marble with your thumb.</span></li>
+    </ul>
+    <p class="note"><b>Keep it away from Squid Game:</b> no "odd or even" guessing, no marble pouches, and no doll, red suits or masks. Only the ring-knockout game is used.</p>
+  </section>
+
+  <footer>Design approved 3 Nov 2026. The implementation spec for Claude Code is in docs/BanBi.md.</footer>
+</div>

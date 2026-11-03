@@ -37,9 +37,12 @@ public static class Localization
         { "Đá Cầu", new[] { "제기차기", "Shuttlecock Kick" } },
         { "Chơi cùng nhau, chuyền cầu cho nhau", new[] { "함께 제기를 주고받아요", "Play together, pass it around" } },
         { "제기차기", new[] { "Đá Cầu", "제기차기" } },
+        { "Bắn Bi", new[] { "구슬치기", "Marbles" } },
+        { "Búng bi ra khỏi vòng", new[] { "구슬을 튕겨 원 밖으로", "Flick marbles out of the ring" } },
+        { "구슬치기", new[] { "Bắn Bi", "구슬치기" } },
         { "Sắp có", new[] { "준비 중", "Coming soon" } },
         { "Giải đấu", new[] { "토너먼트", "Tournament" } },
-        { "Chơi cả 3 trò, tính điểm, lên bục vinh quang", new[] { "세 가지 놀이로 점수를 모아 시상대에 올라요", "Play all 3 games, score points, reach the podium" } },
+        { "Chơi cả 4 trò, tính điểm, lên bục vinh quang", new[] { "네 가지 놀이로 점수를 모아 시상대에 올라요", "Play all 4 games, score points, reach the podium" } },
         { "Ngôn ngữ", new[] { "언어", "Language" } },
 
         // Online
@@ -96,6 +99,14 @@ public static class Localization
         { "Hết mạng!", new[] { "탈락!", "Out!" } },
         { "Gió xuôi!", new[] { "순풍!", "Tailwind!" } },
         { "Gió ngược!", new[] { "역풍!", "Headwind!" } },
+
+        // Bắn Bi
+        { "Đổ xúc xắc!", new[] { "주사위를 굴려요!", "Roll the dice!" } },
+        { "Lượt của P{0}", new[] { "P{0} 차례", "P{0}'s turn" } },
+        { "Thêm lượt!", new[] { "한 번 더!", "Bonus shot!" } },
+        { "Hụt!", new[] { "빗나갔어요!", "Missed!" } },
+        { "Lượt {0}/{1}", new[] { "{0}/{1} 턴", "Turn {0}/{1}" } },
+        { "Giữ để kéo, thả để búng", new[] { "꾹 눌러 당기고, 떼서 튕겨요", "Hold to pull, release to flick" } },
     };
 
     static Language? _current;

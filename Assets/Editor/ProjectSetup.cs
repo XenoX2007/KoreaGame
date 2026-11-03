@@ -25,6 +25,8 @@ public static class ProjectSetup
     const string NguoiGoUxmlPath = "Assets/UI/NguoiGo/NguoiGoHud.uxml";
     const string DaCauScenePath = "Assets/Scenes/DaCau.unity";
     const string DaCauUxmlPath = "Assets/UI/DaCau/DaCauHud.uxml";
+    const string BanBiScenePath = "Assets/Scenes/BanBi.unity";
+    const string BanBiUxmlPath = "Assets/UI/BanBi/BanBiHud.uxml";
     const string PodiumUxmlPath = "Assets/UI/Podium/Podium.uxml";
 
     // Phone lies flat on a table: lock landscape so a bump never flips the screen,
@@ -76,12 +78,20 @@ public static class ProjectSetup
         CreateGameScene<KeoCoGame>(KeoCoScenePath, KeoCoUxmlPath, AssignSeatTemplate);
         CreateGameScene<NguoiGoGame>(NguoiGoScenePath, NguoiGoUxmlPath, AssignSeatTemplate);
         CreateDaCauScene();
+        CreateBanBiScene();
     }
 
     [MenuItem("KoreaGame/Create Da Cau Scene")]
     public static void CreateDaCauScene()
     {
         CreateGameScene<DaCauGame>(DaCauScenePath, DaCauUxmlPath, AssignSeatTemplate);
+        CreateMenuScene();
+    }
+
+    [MenuItem("KoreaGame/Create Ban Bi Scene")]
+    public static void CreateBanBiScene()
+    {
+        CreateGameScene<BanBiGame>(BanBiScenePath, BanBiUxmlPath, AssignSeatTemplate);
         CreateMenuScene();
     }
 
