@@ -24,8 +24,10 @@ public class LauTokbokkiSettings
     public int platesAtStart = 8;
     [Tooltip("Seconds before a taken plate's slot gets a new ingredient.")]
     public float refillSeconds = 1.5f;
-    [Tooltip("Chance that a new plate is something a player still needs.")]
+    [Tooltip("Chance that a new plate is something a player still needs, once nothing needed is missing from the table and floor.")]
     [Range(0f, 1f)] public float neededTypeChance = 0.7f;
+    [Tooltip("While a needed ingredient is missing from the table and floor, a plate nobody needs turns into it this often.")]
+    public float swapSeconds = 3f;
     [Tooltip("Clockwise spin of the table.")]
     public float tableSpinDegPerSec = 10f;
     [Tooltip("Arena units per second at full stick (the floor is 16 x 9).")]
@@ -168,6 +170,7 @@ public sealed class LauTokbokkiModel
     readonly Player[] _players;
     readonly PlateState[] _plates;
     readonly List<FloorItem> _floor = new List<FloorItem>();
+    double _nextSwapAt = double.NaN;
     double _startTime = double.NaN;
     long _steps;
 
@@ -449,6 +452,7 @@ public sealed class LauTokbokkiModel
             _plates[slot].RefillAt = double.PositiveInfinity;
             Raise(new LtEvent(LtEventKind.Refilled, -1, item: _plates[slot].Item, slot: slot));
         }
+        SwapUnneededPlate(now);
 
         _floor.RemoveAll(item => now - item.DroppedAt >= _settings.floorSeconds - 1e-9);
 
@@ -593,23 +597,94 @@ public sealed class LauTokbokkiModel
         if (inward < 0f) p.Velocity -= normal * inward;
     }
 
-    // Usually something a player still needs (counting pots and hands), otherwise anything.
-    Ingredient ChooseNewPlate()
+    // Recipe slots of this type still open across all players, minus what they already carry.
+    int Demand(Ingredient type)
     {
-        var needed = new List<Ingredient>();
+        int open = 0;
+        for (int id = 0; id < _players.Length; id++)
+        {
+            if (_players[id] == null) continue;
+            int slots = OpenSlots(id, type) - (_players[id].Carried == type ? 1 : 0);
+            open += Math.Max(0, slots);
+        }
+        return open;
+    }
+
+    // How many of this type can be picked up right now, on the table and the floor.
+    int Supply(Ingredient type)
+    {
+        int count = 0;
+        foreach (var plate in _plates)
+            if (plate.Item == type) count++;
+        foreach (var item in _floor)
+            if (item.Item == type) count++;
+        return count;
+    }
+
+    // Needed types with none on the table or floor; failing that, ones with fewer than players still need,
+    // weighted by how many are short. The table can hold less than everyone's recipes, so having one of
+    // each comes first.
+    List<Ingredient> MissingTypes()
+    {
+        var absent = new List<Ingredient>();
+        var missing = new List<Ingredient>();
         for (int type = 0; type < TypeCount; type++)
         {
-            int open = 0;
-            for (int id = 0; id < _players.Length; id++)
-            {
-                if (_players[id] == null) continue;
-                int slots = OpenSlots(id, (Ingredient)type) - (_players[id].Carried == (Ingredient)type ? 1 : 0);
-                open += Math.Max(0, slots);
-            }
-            if (open > 0) needed.Add((Ingredient)type);
+            int demand = Demand((Ingredient)type);
+            int supply = Supply((Ingredient)type);
+            if (demand > 0 && supply == 0) absent.Add((Ingredient)type);
+            for (int i = supply; i < demand; i++) missing.Add((Ingredient)type);
         }
+        return absent.Count > 0 ? absent : missing;
+    }
+
+    // Whatever is missing first, so every recipe can always be finished; otherwise usually something
+    // a player still needs (counting pots and hands), otherwise anything.
+    Ingredient ChooseNewPlate()
+    {
+        var missing = MissingTypes();
+        if (missing.Count > 0) return missing[_random.Next(missing.Count)];
+
+        var needed = new List<Ingredient>();
+        for (int type = 0; type < TypeCount; type++)
+            if (Demand((Ingredient)type) > 0) needed.Add((Ingredient)type);
         bool pickNeeded = _random.NextDouble() < _settings.neededTypeChance;
         return pickNeeded && needed.Count > 0 ? needed[_random.Next(needed.Count)] : (Ingredient)_random.Next(TypeCount);
+    }
+
+    // Plates only change when taken, so a table of things nobody needs would never bring what's missing.
+    // Every swapSeconds, while something is missing and no refill is on its way, the surplus plate
+    // farthest from everyone becomes a missing type.
+    void SwapUnneededPlate(double now)
+    {
+        if (double.IsNaN(_nextSwapAt)) _nextSwapAt = now + _settings.swapSeconds;
+        if (now < _nextSwapAt - 1e-9) return;
+        _nextSwapAt = now + _settings.swapSeconds;
+
+        foreach (var plate in _plates)
+            if (!plate.Item.HasValue && !double.IsPositiveInfinity(plate.RefillAt)) return;
+        var missing = MissingTypes();
+        if (missing.Count == 0) return;
+
+        int best = -1;
+        float bestDistance = -1f;
+        for (int slot = 0; slot < _plates.Length; slot++)
+        {
+            var item = _plates[slot].Item;
+            if (!item.HasValue || Supply(item.Value) <= Demand(item.Value)) continue;
+            float nearest = float.MaxValue;
+            foreach (var p in _players) nearest = Mathf.Min(nearest, Vector2.Distance(PlatePosition(slot), p.Position));
+            if (nearest > bestDistance)
+            {
+                bestDistance = nearest;
+                best = slot;
+            }
+        }
+        if (best < 0) return;
+
+        _plates[best].Item = missing[_random.Next(missing.Count)];
+        _plates[best].FilledAt = now;
+        Raise(new LtEvent(LtEventKind.Refilled, -1, item: _plates[best].Item, slot: best));
     }
 
     void Win(int player)

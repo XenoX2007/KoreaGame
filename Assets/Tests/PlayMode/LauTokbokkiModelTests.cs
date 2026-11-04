@@ -112,6 +112,42 @@ public class LauTokbokkiModelTests
     }
 
     [Test]
+    public void ATableOfPlatesNobodyNeeds_GetsOneOfEveryMissingIngredient()
+    {
+        var settings = new LauTokbokkiSettings();
+        var model = NewModel(2, settings);
+        var surplus = model.RecipeOf(0)[0];
+        for (int slot = 0; slot < model.Plates.Count; slot++)
+            if (model.Plates[slot].Item.HasValue) model.SetPlate(slot, surplus);
+
+        Run(model, 0, settings.swapSeconds - 0.1);
+        Assert.AreEqual(8, model.Plates.Count(plate => plate.Item == surplus), "No swap before swapSeconds");
+
+        Run(model, settings.swapSeconds - 0.1, 8 * settings.swapSeconds + 0.1);
+        Assert.AreEqual(8, model.Plates.Count(plate => plate.Item.HasValue), "Swaps keep the plate count");
+        foreach (Ingredient type in Enum.GetValues(typeof(Ingredient)))
+        {
+            int needed = Enumerable.Range(0, 2).Sum(p => model.RecipeOf(p).Count(item => item == type));
+            Assert.GreaterOrEqual(model.Plates.Count(plate => plate.Item == type), Math.Min(needed, 1), $"{type} is needed but not on the table");
+        }
+    }
+
+    [Test]
+    public void NewPlates_BringWhatIsMissingFirst()
+    {
+        for (int seed = 0; seed < 30; seed++)
+        {
+            var model = NewModel(2, seed: seed);
+            foreach (Ingredient type in Enum.GetValues(typeof(Ingredient)))
+            {
+                int needed = Enumerable.Range(0, 2).Sum(p => model.RecipeOf(p).Count(item => item == type));
+                int onTable = model.Plates.Count(plate => plate.Item == type);
+                Assert.GreaterOrEqual(onTable, Math.Min(needed, 1), $"Seed {seed}: {type} is needed but not on the table at the start");
+            }
+        }
+    }
+
+    [Test]
     public void PickingUp_TakesOnlyWhatTheRecipeStillNeeds_OneAtATime()
     {
         var model = NewModel(2);

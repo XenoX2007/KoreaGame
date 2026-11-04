@@ -29,11 +29,11 @@
 
 /* Each team's marble carries its flag: Vietnam blue with the star, Korea red with the taegeuk. */
 .marble--vn {
-    background-image: url("project://database/Assets/UI%20Assets/VN%20(Blue).png?fileID=-6213919199924930305&guid=57b60c2b2a3385b499ecd1327277332c&type=3#VN");
+    background-image: url("project://database/Assets/UI%20Assets/VN%20(Blue).png?fileID=-6213919199924930305&guid=57b60c2b2a3385b499ecd1327277332c&type=3#VN%20(Blue)_0");
 }
 
 .marble--kr {
-    background-image: url("project://database/Assets/UI%20Assets/KR%20(Red).png?fileID=-7028137374346497254&guid=09fb73fde01c8f04ab5df83bc9112a81&type=3#KR");
+    background-image: url("project://database/Assets/UI%20Assets/KR%20(Red).png?fileID=-7028137374346497254&guid=09fb73fde01c8f04ab5df83bc9112a81&type=3#KR%20(Red)_0");
 }
 
 .marble-shadow {
@@ -91,7 +91,7 @@
     -unity-background-image-tint-color: #000000;
 }
 
-/* The shared shoot button, in the active team's color with the .btn edge. */
+/* The shared shoot button, in the active player's seat color (--p1..--p4 in Madang.uss) with the .btn edge. */
 .shoot-button {
     position: absolute;
     left: 0;
@@ -99,15 +99,25 @@
     align-items: center;
     justify-content: center;
     border-bottom-width: 10px;
-    background-color: #E5383B;
+    background-color: #E94F4F;
     border-bottom-color: #A8262A;
     transition-property: translate, opacity;
     transition-duration: 90ms, 200ms;
 }
 
-.shoot-button--vn {
-    background-color: #2B6CF6;
+.shoot-button--p2 {
+    background-color: #3D8BFF;
     border-bottom-color: #1A47A8;
+}
+
+.shoot-button--p3 {
+    background-color: #3CC57A;
+    border-bottom-color: #23804D;
+}
+
+.shoot-button--p4 {
+    background-color: #FFC23D;
+    border-bottom-color: #B3841C;
 }
 
 .shoot-button.is-pressed {

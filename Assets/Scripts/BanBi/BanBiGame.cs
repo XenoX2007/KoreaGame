@@ -38,6 +38,7 @@ public class BanBiGame : PanelMiniGame
 
     // The router id of the shared shoot button.
     public const int ShootId = SeatLayout.MaxPlayers;
+    static readonly string[] ShootColors = { "shoot-button--p1", "shoot-button--p2", "shoot-button--p3", "shoot-button--p4" };
 
     public static readonly string[] Facts =
     {
@@ -433,8 +434,9 @@ public class BanBiGame : PanelMiniGame
         SetRadius(_shootButton, size / 2f);
         _shootButton.style.translate = new Translate(center.x - size / 2f, center.y - size / 2f);
 
-        int team = _model.ActiveTeam;
-        _shootButton.EnableInClassList("shoot-button--vn", team == 0);
+        // P1 is the base look; the others have their own seat color.
+        for (int id = 1; id < ShootColors.Length; id++)
+            _shootButton.EnableInClassList(ShootColors[id], _model.ActivePlayer == id);
         _shootButton.EnableInClassList("is-pressed", _shootHeld);
         _shootButton.EnableInClassList("is-disabled", waiting);
         _shootName.text = $"P{_model.ActivePlayer + 1}";
