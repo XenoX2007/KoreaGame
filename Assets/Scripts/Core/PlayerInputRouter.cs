@@ -8,11 +8,21 @@ using ETouch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 // Turns touches (and keyboard/mouse in the Editor) into per-player press/release events.
 // A finger belongs to the seat zone it first touched until it lifts, even if it slides away.
 // Extra zones (e.g. a shared button) sit on top of the seats and press ids from MaxPlayers up.
+// Each seat also has a polled joystick: how far its finger has dragged from where it went down.
 public class PlayerInputRouter : MonoBehaviour
 {
     // Spatial keyboard mapping for testing on PC: Z = bottom-left, P = top-right, Q = top-left, M = bottom-right.
     static readonly Key[] PlayerKeys = { Key.Z, Key.P, Key.Q, Key.M };
+    // Stick keys per player: up, left, down, right.
+    static readonly Key[][] StickKeys =
+    {
+        new[] { Key.W, Key.A, Key.S, Key.D },
+        new[] { Key.UpArrow, Key.LeftArrow, Key.DownArrow, Key.RightArrow },
+        new[] { Key.I, Key.J, Key.K, Key.L },
+        new[] { Key.Numpad8, Key.Numpad4, Key.Numpad5, Key.Numpad6 },
+    };
     const int MouseFingerId = -1;
+    const int NoFinger = int.MinValue;
     const int MaxExtraZones = 2;
     const int MaxIds = SeatLayout.MaxPlayers + MaxExtraZones;
 
@@ -25,6 +35,10 @@ public class PlayerInputRouter : MonoBehaviour
     // Normalized screen rects where new touches are ignored (e.g. a pause button).
     public readonly List<Rect> IgnoredZones = new List<Rect>();
 
+    // A full stick tilt is a drag of this fraction of the screen height.
+    public const float StickRadiusOfHeight = 0.09f;
+    public static float StickRadius => StickRadiusOfHeight * Screen.height;
+
     public int PlayerCount { get; private set; }
     public int ActiveFingerCount => _fingerToPlayer.Count;
 
@@ -32,6 +46,9 @@ public class PlayerInputRouter : MonoBehaviour
     readonly int[] _sourceCount = new int[MaxIds];
     readonly bool[] _keyHeld = new bool[MaxIds];
     readonly Dictionary<int, Rect> _extraZones = new Dictionary<int, Rect>();
+    readonly Dictionary<int, Vector2> _fingerStart = new Dictionary<int, Vector2>();
+    readonly Dictionary<int, Vector2> _fingerAt = new Dictionary<int, Vector2>();
+    readonly int[] _stickFinger = { NoFinger, NoFinger, NoFinger, NoFinger };
     Seat[] _seats = Array.Empty<Seat>();
     int _soloPlayer = -1;
 
@@ -94,6 +111,40 @@ public class PlayerInputRouter : MonoBehaviour
 
     public bool HasExtraZone(int id) => _extraZones.ContainsKey(id);
 
+    // The seat's joystick in screen space (x right, y up), length 0..1: the drag of the finger that owns
+    // the seat from where it went down, or its stick keys in the Editor. Zero when nothing drives it.
+    public Vector2 Stick(int playerId)
+    {
+        if (playerId < 0 || playerId >= SeatLayout.MaxPlayers) return Vector2.zero;
+
+        int finger = _stickFinger[playerId];
+        if (finger != NoFinger) return Vector2.ClampMagnitude((_fingerAt[finger] - _fingerStart[finger]) / StickRadius, 1f);
+
+        var keys = StickKeysOf(playerId);
+        if (keys == null) return Vector2.zero;
+        var keyboard = Keyboard.current;
+        var direction = new Vector2(
+            (keyboard[keys[3]].isPressed ? 1f : 0f) - (keyboard[keys[1]].isPressed ? 1f : 0f),
+            (keyboard[keys[0]].isPressed ? 1f : 0f) - (keyboard[keys[2]].isPressed ? 1f : 0f));
+        return direction.normalized;
+    }
+
+    // A finger, the mouse or a stick key is driving this seat's joystick, even before it moves.
+    public bool StickActive(int playerId)
+    {
+        if (playerId < 0 || playerId >= SeatLayout.MaxPlayers) return false;
+        if (_stickFinger[playerId] != NoFinger) return true;
+
+        var keys = StickKeysOf(playerId);
+        if (keys == null) return false;
+        foreach (var key in keys)
+            if (Keyboard.current[key].isPressed) return true;
+        return false;
+    }
+
+    Key[] StickKeysOf(int playerId) =>
+        Keyboard.current != null && _soloPlayer < 0 && playerId < PlayerCount ? StickKeys[playerId] : null;
+
     void Awake()
     {
         if (_instance != null && _instance != this)
@@ -109,12 +160,14 @@ public class PlayerInputRouter : MonoBehaviour
         EnhancedTouchSupport.Enable();
         ETouch.onFingerDown += OnFingerDown;
         ETouch.onFingerUp += OnFingerUp;
+        ETouch.onFingerMove += OnFingerMove;
     }
 
     void OnDisable()
     {
         ETouch.onFingerDown -= OnFingerDown;
         ETouch.onFingerUp -= OnFingerUp;
+        ETouch.onFingerMove -= OnFingerMove;
         EnhancedTouchSupport.Disable();
         ReleaseAll();
     }
@@ -140,6 +193,8 @@ public class PlayerInputRouter : MonoBehaviour
     void OnFingerDown(Finger finger) => BeginPointer(finger.index, finger.screenPosition);
 
     void OnFingerUp(Finger finger) => EndPointer(finger.index);
+
+    void OnFingerMove(Finger finger) => MovePointer(finger.index, finger.screenPosition);
 
     void PollKeyboard()
     {
@@ -173,6 +228,7 @@ public class PlayerInputRouter : MonoBehaviour
 
         if (mouse.leftButton.wasPressedThisFrame) BeginPointer(MouseFingerId, mouse.position.ReadValue());
         else if (mouse.leftButton.wasReleasedThisFrame) EndPointer(MouseFingerId);
+        else if (mouse.leftButton.isPressed) MovePointer(MouseFingerId, mouse.position.ReadValue());
     }
 
     void BeginPointer(int fingerId, Vector2 screenPosition)
@@ -183,7 +239,16 @@ public class PlayerInputRouter : MonoBehaviour
         if (player < 0) return;
 
         _fingerToPlayer[fingerId] = player;
+        _fingerStart[fingerId] = screenPosition;
+        _fingerAt[fingerId] = screenPosition;
+        // The first finger on a seat drives its stick; another one takes over only when it lifts.
+        if (player < SeatLayout.MaxPlayers && _stickFinger[player] == NoFinger) _stickFinger[player] = fingerId;
         Press(player);
+    }
+
+    void MovePointer(int fingerId, Vector2 screenPosition)
+    {
+        if (_fingerToPlayer.ContainsKey(fingerId)) _fingerAt[fingerId] = screenPosition;
     }
 
     void EndPointer(int fingerId)
@@ -191,6 +256,14 @@ public class PlayerInputRouter : MonoBehaviour
         if (!_fingerToPlayer.TryGetValue(fingerId, out int player)) return;
 
         _fingerToPlayer.Remove(fingerId);
+        _fingerStart.Remove(fingerId);
+        _fingerAt.Remove(fingerId);
+        if (player < SeatLayout.MaxPlayers && _stickFinger[player] == fingerId)
+        {
+            _stickFinger[player] = NoFinger;
+            foreach (var other in _fingerToPlayer)
+                if (other.Value == player) _stickFinger[player] = other.Key;
+        }
         Release(player);
     }
 
@@ -226,6 +299,9 @@ public class PlayerInputRouter : MonoBehaviour
     void ReleaseAll()
     {
         _fingerToPlayer.Clear();
+        _fingerStart.Clear();
+        _fingerAt.Clear();
+        for (int i = 0; i < _stickFinger.Length; i++) _stickFinger[i] = NoFinger;
         for (int i = 0; i < MaxIds; i++)
         {
             _keyHeld[i] = false;

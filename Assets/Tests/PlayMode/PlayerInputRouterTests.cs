@@ -186,6 +186,86 @@ public class PlayerInputRouterTests : InputTestFixture
         CollectionAssert.AreEqual(new[] { "P5+", "P5-" }, _events);
     }
 
+    static Vector2 Right(float sticks) => new Vector2(sticks * PlayerInputRouter.StickRadius, 0f);
+
+    [Test]
+    public void DraggingFromWhereTheFingerWentDown_TiltsThatSeatsStick()
+    {
+        var start = At(0.2f, 0.2f);
+        BeginTouch(1, start);
+        Assert.IsTrue(_router.StickActive(0));
+        Assert.AreEqual(Vector2.zero, _router.Stick(0));
+
+        MoveTouch(1, start + Right(0.5f));
+        Assert.AreEqual(0.5f, _router.Stick(0).x, 0.01f);
+        Assert.AreEqual(0f, _router.Stick(0).y, 0.01f);
+
+        MoveTouch(1, start + Right(2f));
+        Assert.AreEqual(1f, _router.Stick(0).magnitude, 1e-4f);
+        Assert.AreEqual(1f, _router.Stick(0).x, 1e-4f);
+    }
+
+    [Test]
+    public void TheStickStaysWithItsSeatInAnotherZone_AndIsZeroAfterLift()
+    {
+        var start = At(0.4f, 0.4f);
+        BeginTouch(1, start);
+        MoveTouch(1, At(0.6f, 0.6f)); // into P2's zone
+
+        Assert.Greater(_router.Stick(0).magnitude, 0.5f);
+        Assert.AreEqual(Vector2.zero, _router.Stick(1));
+        Assert.IsFalse(_router.StickActive(1));
+
+        EndTouch(1, At(0.6f, 0.6f));
+        Assert.AreEqual(Vector2.zero, _router.Stick(0));
+        Assert.IsFalse(_router.StickActive(0));
+    }
+
+    [Test]
+    public void TwoFingersInTwoZones_DriveTwoSticks()
+    {
+        var p1 = At(0.2f, 0.2f);
+        var p2 = At(0.8f, 0.8f);
+        BeginTouch(1, p1);
+        BeginTouch(2, p2);
+        MoveTouch(1, p1 + Right(0.5f));
+        MoveTouch(2, p2 + new Vector2(0f, -0.25f * PlayerInputRouter.StickRadius));
+
+        Assert.AreEqual(0.5f, _router.Stick(0).x, 0.01f);
+        Assert.AreEqual(0f, _router.Stick(0).y, 0.01f);
+        Assert.AreEqual(0f, _router.Stick(1).x, 0.01f);
+        Assert.AreEqual(-0.25f, _router.Stick(1).y, 0.01f);
+        Assert.AreEqual(Vector2.zero, _router.Stick(2));
+    }
+
+    [UnityTest]
+    public IEnumerator StickKeys_TiltTheirPlayersStick_DiagonalsAtFullLength()
+    {
+        Press(_keyboard.dKey);
+        yield return null;
+        Assert.AreEqual(new Vector2(1f, 0f), _router.Stick(0));
+        Assert.IsTrue(_router.StickActive(0));
+        Assert.AreEqual(Vector2.zero, _router.Stick(1));
+
+        Press(_keyboard.wKey);
+        yield return null;
+        Assert.AreEqual(1f, _router.Stick(0).magnitude, 1e-5f);
+        Assert.AreEqual(_router.Stick(0).x, _router.Stick(0).y, 1e-5f);
+
+        Release(_keyboard.dKey);
+        yield return null;
+        Release(_keyboard.wKey);
+        yield return null;
+        Press(_keyboard.leftArrowKey);
+        yield return null;
+        Assert.AreEqual(Vector2.zero, _router.Stick(0));
+        Assert.AreEqual(new Vector2(-1f, 0f), _router.Stick(1));
+        Release(_keyboard.leftArrowKey);
+        yield return null;
+
+        CollectionAssert.IsEmpty(_events, "Stick keys don't press seats");
+    }
+
     [UnityTest]
     public IEnumerator SeatKeys_PressMatchingPlayers()
     {

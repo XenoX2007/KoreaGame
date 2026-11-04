@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] string menuScene = "Menu";
     [SerializeField] string podiumScene = "Podium";
-    [SerializeField] string[] tournamentScenes = { "NguoiGo", "KeoCo", "DaCau", "BanBi" };
+    [SerializeField] string[] tournamentScenes = { "NguoiGo", "KeoCo", "DaCau", "BanBi", "TachKeo" };
 
     public static GameManager Instance { get; private set; }
 

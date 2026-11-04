@@ -40,9 +40,12 @@ public static class Localization
         { "Bắn Bi", new[] { "구슬치기", "Marbles" } },
         { "Búng bi ra khỏi vòng", new[] { "구슬을 튕겨 원 밖으로", "Flick marbles out of the ring" } },
         { "구슬치기", new[] { "Bắn Bi", "구슬치기" } },
+        { "Tách Kẹo", new[] { "뽑기", "Candy Cut" } },
+        { "Tách hình kẹo mà không làm vỡ", new[] { "깨지지 않게 모양을 떼어내요", "Cut the shape out without breaking it" } },
+        { "뽑기", new[] { "Tách Kẹo", "뽑기" } },
         { "Sắp có", new[] { "준비 중", "Coming soon" } },
         { "Giải đấu", new[] { "토너먼트", "Tournament" } },
-        { "Chơi cả 4 trò, tính điểm, lên bục vinh quang", new[] { "네 가지 놀이로 점수를 모아 시상대에 올라요", "Play all 4 games, score points, reach the podium" } },
+        { "Chơi cả 5 trò, tính điểm, lên bục vinh quang", new[] { "다섯 가지 놀이로 점수를 모아 시상대에 올라요", "Play all 5 games, score points, reach the podium" } },
         { "Ngôn ngữ", new[] { "언어", "Language" } },
 
         // Online
@@ -108,6 +111,16 @@ public static class Localization
         { "Lượt {0}/{1}", new[] { "{0}/{1} 턴", "Turn {0}/{1}" } },
         { "Giữ nút để kéo, thả để bắn", new[] { "버튼을 꾹 눌러 당기고, 떼서 튕겨요", "Hold the button to pull, release to flick" } },
         { "Bắn!", new[] { "튕겨요!", "Flick!" } },
+
+        // Tách Kẹo
+        { "Chuẩn bị tách kẹo!", new[] { "뽑기 준비!", "Get ready to cut!" } },
+        { "Kéo cần để cắt theo đường", new[] { "스틱으로 선을 따라 잘라요", "Move the stick along the line" } },
+        { "Vỡ rồi!", new[] { "깨졌어요!", "Cracked!" } },
+        { "Xong!", new[] { "성공!", "Done!" } },
+        { "Cái ô", new[] { "우산", "Umbrella" } },
+        { "Hình vuông", new[] { "네모", "Square" } },
+        { "Hình bầu dục", new[] { "타원", "Oval" } },
+        { "Ngôi sao", new[] { "별", "Star" } },
     };
 
     static Language? _current;

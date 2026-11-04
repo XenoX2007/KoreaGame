@@ -1,0 +1,125 @@
+/* The tins, candies and joysticks are sized and placed by TachKeoGame from the stage height;
+   this file keeps only their look. */
+
+/* A street-vendor table seen from above, instead of the courtyard. */
+.tray {
+    background-image: none;
+    background-color: #F6E9CF;
+}
+
+/* Faint lines between the players' parts of the table. */
+.divider {
+    position: absolute;
+    background-color: #E3CFA6;
+}
+
+.divider--vertical {
+    left: 50%;
+    top: 2%;
+    bottom: 2%;
+    width: 3px;
+    margin-left: -1px;
+}
+
+.divider--horizontal {
+    display: none;
+    top: 50%;
+    left: 1%;
+    right: 1%;
+    height: 3px;
+    margin-top: -1px;
+}
+
+.tach-keo--four .divider--horizontal {
+    display: flex;
+}
+
+/* The round metal tray each candy sits in. */
+.tin {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: #B9B2A6;
+    border-width: 6px;
+    border-color: #9C958A;
+}
+
+/* Candy, stamped line, carving, cracks, needle and progress ring (Painter2D). */
+.candy-drawing {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.candy-caption,
+.shape-name {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    white-space: normal;
+    color: #5A3208;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: #F6CF7E;
+    transition-property: opacity;
+    transition-duration: 300ms;
+}
+
+.candy-caption.is-hidden,
+.shape-name.is-hidden {
+    opacity: 0;
+}
+
+/* The countdown and the seconds left. With 4 players the pill sits in the middle of the table. */
+.tach-keo--four .timer {
+    top: 50%;
+    margin-top: -47px;
+}
+
+/* Joysticks replace the seat buttons in this scene: the seat ring is the base. */
+.tach-keo .seat-disc {
+    display: none;
+}
+
+.tach-keo .seat-ring {
+    background-color: rgba(252, 244, 227, 0.75);
+}
+
+.joystick-knob {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 70px;
+    height: 70px;
+    margin: -35px 0 0 -35px;
+    border-radius: 35px;
+    border-width: 4px;
+    border-color: rgba(0, 0, 0, 0.25);
+    background-color: var(--player);
+}
+
+.joystick-status {
+    position: absolute;
+    left: -80px;
+    top: 176px;
+    width: 330px;
+    height: 50px;
+    margin: 0;
+    padding: 0;
+    font-size: 34px;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--paper);
+}
+
+.joystick-status.is-done {
+    color: var(--gold-deep);
+}
+
+.joystick-status.is-broken {
+    color: var(--rose-deep);
+}

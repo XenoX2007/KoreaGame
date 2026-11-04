@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Menu.unity
     guid: d9821887c7d966446a70ac25c6cc523c
   - enabled: 1
+    path: Assets/Scenes/TachKeo.unity
+    guid: 1b028d41cbdb1624c9487f093d704775
+  - enabled: 1
     path: Assets/Scenes/BanBi.unity
     guid: ea00037f1765933428affff172eef7cd
   - enabled: 1

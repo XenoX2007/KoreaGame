@@ -96,8 +96,8 @@
 .game-card {
     flex-grow: 1;
     flex-basis: 0;
-    margin: 0 12px;
-    padding: 14px 24px 16px 24px;
+    margin: 0 9px;
+    padding: 14px 14px 16px 14px;
     align-items: center;
     justify-content: center;
     border-top-width: 14px;
@@ -128,6 +128,11 @@
     transition-delay: 330ms, 330ms, 0s;
 }
 
+.game-card--fifth {
+    border-top-color: #C98321;
+    transition-delay: 420ms, 420ms, 0s;
+}
+
 .is-in .game-card {
     opacity: 1;
     translate: 0 0;
@@ -146,8 +151,8 @@
 }
 
 .card-icon {
-    width: 132px;
-    height: 132px;
+    width: 116px;
+    height: 116px;
     flex-shrink: 0;
     -unity-background-scale-mode: scale-to-fit;
 }
@@ -164,6 +169,10 @@
     background-image: url("project://database/Assets/UI/Art/icon-shuttlecock.svg");
 }
 
+.card-icon--candy {
+    background-image: url("project://database/Assets/UI/Art/icon-candy.svg");
+}
+
 /* Placeholder marble until Bắn Bi has its icon art. */
 .card-icon--marble {
     width: 96px;
@@ -175,17 +184,19 @@
     background-color: var(--p2);
 }
 
+/* Five cards share the row, so the longest names (English) must still fit on one line. */
 .card-name {
-    font-size: 52px;
-    height: 72px;
+    font-size: 40px;
+    height: 60px;
     margin: 2px 0 0 0;
     padding: 0;
+    white-space: nowrap;
     -unity-text-align: middle-center;
 }
 
 .card-story {
-    font-size: 26px;
-    height: 38px;
+    font-size: 22px;
+    height: 58px;
     margin: 2px 0 0 0;
     padding: 0;
     color: var(--wood);

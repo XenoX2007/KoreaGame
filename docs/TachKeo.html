@@ -1,0 +1,190 @@
+<title>Tách Kẹo – Ppopgi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Mali:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a street-vendor candy tray — the four-corner phone screen is the hero, then controls, cutting rules, winning, and open questions. Tokens from Madang.uss plus honeycomb candy tones. */
+:root {
+  --ink: #3B2A1A; --paper: #FCF4E3; --paper-edge: #E3CFA6; --card: #FFFBF2; --muted: #7A6650;
+  --table: #F6E9CF; --tin: #B9B2A6; --candy: #E9A93B; --candy-edge: #C98321; --line: #7A4B12; --carved: #5A3208;
+  --crack: #3B2A1A; --needle: #6E6E6E;
+  --rose: #D6336C; --gold: #F2B233; --jade: #1F7A6D;
+  --code-bg: #F3E7CE;
+  --display: "Jua", "Mali", system-ui, sans-serif; --body: "Mali", system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ink: #F4E8D2; --paper: #1E1812; --paper-edge: #3A2E22; --card: #29211A; --muted: #B5A288; --table: #2C231A; --tin: #6F6A62;
+  --crack: #F4E8D2; --needle: #CFCFCF; --rose: #F06A95; --gold: #F5C25A; --jade: #4FBFAE; --code-bg: #332920; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --ink: #F4E8D2; --paper: #1E1812; --paper-edge: #3A2E22; --card: #29211A; --muted: #B5A288; --table: #2C231A; --tin: #6F6A62;
+  --crack: #F4E8D2; --needle: #CFCFCF; --rose: #F06A95; --gold: #F5C25A; --jade: #4FBFAE; --code-bg: #332920; color-scheme: dark }
+
+body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 920px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 48px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; line-height: 1.15; text-wrap: balance; margin: 0; }
+h2 { font-size: 30px; } h3 { font-size: 20px; }
+p { margin: 0; max-width: 68ch; }
+code { font-family: var(--mono); font-size: .86em; background: var(--code-bg); padding: 1px 6px; border-radius: 6px; }
+.label { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+section { display: flex; flex-direction: column; gap: 16px; }
+
+.hero { display: flex; flex-direction: column; gap: 16px; }
+.ver { align-self: flex-start; background: var(--gold); color: #3B2A1A; font-family: var(--display); border-radius: 999px; padding: 2px 12px; font-size: 15px; }
+.hero h1 { font-size: clamp(44px, 8vw, 72px); }
+.hero h1 small { display: block; font-size: .45em; color: var(--rose); }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { background: var(--card); border: 1px solid var(--paper-edge); border-radius: 999px; padding: 3px 12px; font-size: 14px; font-weight: 600; }
+.screen svg { width: 100%; height: auto; display: block; }
+.screens { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 720px) { .screens { grid-template-columns: 1fr; } }
+figure { margin: 0; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.caption { font-size: 13px; color: var(--muted); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.card { background: var(--card); border-radius: 18px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; border-bottom: 5px solid var(--paper-edge); }
+.card .n { font-family: var(--display); color: var(--rose); font-size: 15px; }
+.card p { font-size: 15px; }
+
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 540px; background: var(--card); border-radius: 14px; overflow: hidden; }
+th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--paper-edge); vertical-align: top; }
+th { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+td.num { font-family: var(--mono); font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+tr:last-child td { border-bottom: 0; }
+
+.meter { display: flex; flex-direction: column; gap: 10px; background: var(--card); border-radius: 18px; padding: 18px; border: 1px solid var(--paper-edge); }
+.bar { height: 18px; border-radius: 9px; background: linear-gradient(90deg, var(--jade) 0 55%, var(--gold) 55% 80%, var(--rose) 80%); position: relative; }
+.bar span { position: absolute; top: 22px; font-size: 13px; color: var(--muted); transform: translateX(-50%); white-space: nowrap; }
+.bar-wrap { padding-bottom: 26px; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+.grid2 > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+ul, ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.shapes { display: flex; flex-wrap: wrap; gap: 14px; }
+.shape { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 14px; }
+.shape svg { width: 74px; height: 74px; }
+.note { background: var(--card); border-left: 5px solid var(--rose); border-radius: 10px; padding: 14px 16px; }
+.q li b { font-weight: 700; }
+footer { font-size: 13px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="ver">Version 1 · approved</span>
+    <span class="label">Madang · game 2 of 3</span>
+    <h1>Tách Kẹo <small>뽑기 · Ppopgi / Dalgona</small></h1>
+    <p>Up to four players cut honeycomb candy at the same time, each in their own part of the phone with their own random shape. You move a needle with your own joystick and follow the stamped line. Go off the line or push too hard and the candy cracks, so you start a new one. Only the finishing order counts: 1st, 2nd, 3rd and 4th. The round lasts 20 seconds.</p>
+    <div class="tags"><span class="tag">2 or 4 players, all at once</span><span class="tag">A different shape for everyone</span><span class="tag">Joystick per seat</span><span class="tag">20 s round</span><span class="tag">Fastest clean cut wins</span></div>
+    <div class="screens"><figure><div class="screen"><svg viewBox="0 0 480 270" role="img" aria-label="4-player layout: four corners, each with a tin and honey candy turned toward its player and a joystick in the corner. P1 has a square half carved, P3 an oval that is cracking, P2 a star already popped out, P4 an umbrella just starting. A timer sits in the center.">
+<rect x="1" y="1" width="478" height="268" rx="18" fill="var(--table)" stroke="var(--paper-edge)" stroke-width="2"/>
+<line x1="240" y1="8" x2="240" y2="262" stroke="var(--paper-edge)" stroke-width="1.5" stroke-dasharray="4 5"/><line x1="8" y1="135" x2="472" y2="135" stroke="var(--paper-edge)" stroke-width="1.5" stroke-dasharray="4 5"/>
+<g transform="rotate(0 150 198)"><circle cx="150" cy="198" r="60" fill="var(--tin)"/><circle cx="150" cy="198" r="50" fill="var(--candy)" stroke="var(--candy-edge)" stroke-width="3"/><g transform="translate(150 198) scale(1.0) translate(-150 -198)"><rect x="129" y="177" width="42" height="42" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 2.5"/><rect x="129" y="177" width="42" height="42" fill="none" stroke="var(--carved)" stroke-width="3.5" stroke-dasharray="75 400"/></g><circle cx="150" cy="198" r="56" fill="none" stroke="var(--jade)" stroke-width="4" stroke-dasharray="158 999" transform="rotate(-90 150 198)"/><line x1="171" y1="190" x2="185" y2="174" stroke="var(--needle)" stroke-width="2.5" stroke-linecap="round"/><circle cx="185" cy="174" r="3.5" fill="var(--rose)"/></g>
+<g transform="rotate(180 150 72)"><circle cx="150" cy="72" r="60" fill="var(--tin)"/><circle cx="150" cy="72" r="50" fill="var(--candy)" stroke="var(--candy-edge)" stroke-width="3"/><g transform="translate(150 72) scale(1.0) translate(-150 -72)"><ellipse cx="150" cy="72" rx="27" ry="19" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 2.5"/><ellipse cx="150" cy="72" rx="27" ry="19" fill="none" stroke="var(--carved)" stroke-width="3.5" stroke-dasharray="35 400"/><path d="M168 60 l12 4 l6 -9 l10 8 M174 64 l-4 14 l9 10" fill="none" stroke="var(--crack)" stroke-width="2"/></g><circle cx="150" cy="72" r="56" fill="none" stroke="var(--rose)" stroke-width="4" stroke-dasharray="70 999" transform="rotate(-90 150 72)"/></g>
+<g transform="rotate(180 330 72)"><circle cx="330" cy="72" r="60" fill="var(--tin)"/><circle cx="330" cy="72" r="50" fill="var(--candy)" stroke="var(--candy-edge)" stroke-width="3"/><g transform="translate(330 72) scale(1.0) translate(-330 -72)"><polygon points="330.0,42.0 337.4,61.8 358.5,62.7 342.0,75.9 347.6,96.3 330.0,84.6 312.4,96.3 318.0,75.9 301.5,62.7 322.6,61.8" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 2.5"/><polygon points="330.0,36.0 337.4,55.8 358.5,56.7 342.0,69.9 347.6,90.3 330.0,78.6 312.4,90.3 318.0,69.9 301.5,56.7 322.6,55.8" fill="var(--candy-edge)" stroke="var(--carved)" stroke-width="3.5"/></g><circle cx="330" cy="72" r="56" fill="none" stroke="var(--gold)" stroke-width="4" stroke-dasharray="352 999" transform="rotate(-90 330 72)"/></g>
+<g transform="rotate(0 330 198)"><circle cx="330" cy="198" r="60" fill="var(--tin)"/><circle cx="330" cy="198" r="50" fill="var(--candy)" stroke="var(--candy-edge)" stroke-width="3"/><g transform="translate(330 198) scale(1.0) translate(-330 -198)"><path d="M304 196 Q304 170 330 170 Q356 170 356 196 Q347 190 339 196 Q335 192 332.5 195 L332.5 216 Q332.5 224 325 224 Q318 224 318 217 L322 217 Q322 220 325 220 Q327.5 220 327.5 216 L327.5 195 Q325 192 321 196 Q313 190 304 196 Z" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 2.5"/></g></g>
+<circle cx="52" cy="226" r="22" fill="var(--card)" stroke="#E94F4F" stroke-width="4"/><circle cx="60" cy="219" r="10" fill="#E94F4F" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+<circle cx="52" cy="44" r="22" fill="var(--card)" stroke="#3CC57A" stroke-width="4"/><circle cx="46" cy="49" r="10" fill="#3CC57A" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+<circle cx="428" cy="44" r="22" fill="var(--card)" stroke="#3D8BFF" stroke-width="4"/><circle cx="428" cy="44" r="10" fill="#3D8BFF" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+<circle cx="428" cy="226" r="22" fill="var(--card)" stroke="#E0A21E" stroke-width="4"/><circle cx="428" cy="217" r="10" fill="#E0A21E" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+<g font-family="Jua, sans-serif" font-size="12" fill="var(--ink)" text-anchor="middle"><text x="52" y="262">P1 · 45%</text><text x="52" y="16" transform="rotate(180 52 12)">P3 · Vỡ rồi!</text><text x="428" y="16" transform="rotate(180 428 12)">P2 · 9.4 s</text><text x="428" y="262">P4</text></g>
+<rect x="216" y="123" width="48" height="24" rx="12" fill="var(--ink)"/><text x="240" y="140" font-family="Jua, sans-serif" font-size="15" fill="var(--paper)" text-anchor="middle">12</text></svg></div><figcaption class="caption">4 players: one corner each. Each tin is turned toward its player, so the top two are upside down. P1 is cutting a square, P3's oval just cracked, P2 popped the star out in 9.4 s, and P4 is starting an umbrella.</figcaption></figure><figure><div class="screen"><svg viewBox="0 0 480 270" role="img" aria-label="2-player layout: the screen split into left and right halves, each with a bigger tin and candy turned toward the player at that short end, and a joystick at the middle of each short edge. Left has an umbrella half carved, right a square just starting. Timer at the top center.">
+<rect x="1" y="1" width="478" height="268" rx="18" fill="var(--table)" stroke="var(--paper-edge)" stroke-width="2"/>
+<line x1="240" y1="34" x2="240" y2="262" stroke="var(--paper-edge)" stroke-width="1.5" stroke-dasharray="4 5"/>
+<g transform="rotate(-90 150 135)"><circle cx="150" cy="135" r="85" fill="var(--tin)"/><circle cx="150" cy="135" r="74" fill="var(--candy)" stroke="var(--candy-edge)" stroke-width="3"/><g transform="translate(150 135) scale(1.48) translate(-150 -135)"><path d="M124 133 Q124 107 150 107 Q176 107 176 133 Q167 127 159 133 Q155 129 152.5 132 L152.5 153 Q152.5 161 145 161 Q138 161 138 154 L142 154 Q142 157 145 157 Q147.5 157 147.5 153 L147.5 132 Q145 129 141 133 Q133 127 124 133 Z" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 2.5"/><path d="M124 133 Q124 107 150 107 Q176 107 176 133 Q167 127 159 133 Q155 129 152.5 132 L152.5 153 Q152.5 161 145 161 Q138 161 138 154 L142 154 Q142 157 145 157 Q147.5 157 147.5 153 L147.5 132 Q145 129 141 133 Q133 127 124 133 Z" fill="none" stroke="var(--carved)" stroke-width="3.5" stroke-dasharray="75 400"/></g><circle cx="150" cy="135" r="81" fill="none" stroke="var(--jade)" stroke-width="4" stroke-dasharray="229 999" transform="rotate(-90 150 135)"/><line x1="171" y1="127" x2="185" y2="111" stroke="var(--needle)" stroke-width="2.5" stroke-linecap="round"/><circle cx="185" cy="111" r="3.5" fill="var(--rose)"/></g>
+<g transform="rotate(90 330 135)"><circle cx="330" cy="135" r="85" fill="var(--tin)"/><circle cx="330" cy="135" r="74" fill="var(--candy)" stroke="var(--candy-edge)" stroke-width="3"/><g transform="translate(330 135) scale(1.48) translate(-330 -135)"><rect x="309" y="114" width="42" height="42" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 2.5"/></g></g>
+<circle cx="38" cy="135" r="22" fill="var(--card)" stroke="#E94F4F" stroke-width="4"/><circle cx="45" cy="141" r="10" fill="#E94F4F" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+<circle cx="442" cy="135" r="22" fill="var(--card)" stroke="#3D8BFF" stroke-width="4"/><circle cx="442" cy="135" r="10" fill="#3D8BFF" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+<rect x="216" y="8" width="48" height="24" rx="12" fill="var(--ink)"/><text x="240" y="25" font-family="Jua, sans-serif" font-size="15" fill="var(--paper)" text-anchor="middle">16</text></svg></div><figcaption class="caption">2 players: half the screen each, with a bigger candy facing the player at each short end.</figcaption></figure></div>
+  </header>
+
+  <section>
+    <h2>A round</h2>
+    <div class="cards">
+      <div class="card"><span class="n">1 · Show the shape</span><h3>Everyone gets a shape</h3><p>During a 3 s countdown, each candy is stamped with a random shape and its name. No two players get the same one.</p></div>
+      <div class="card"><span class="n">2 · Cut</span><h3>Trace the line</h3><p>Drag your joystick to move the needle. The line darkens where you have carved it, and the ring around your tin shows how much is done.</p></div>
+      <div class="card"><span class="n">3 · Crack</span><h3>Start again</h3><p>If the crack meter fills, the candy crumbles. After a 1 s pause you get a fresh candy with 0% progress. Your clock keeps running.</p></div>
+      <div class="card"><span class="n">4 · Pop</span><h3>Shape comes out</h3><p>Carve the whole outline and the shape pops out of the candy. Your time is locked in and your corner celebrates.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The joystick</h2>
+    <p>Each seat button becomes a joystick in the same place: the corner with 4 players, the middle of the short edge with 2. It's a floating stick: put your thumb down anywhere in your corner and drag. The needle moves in the direction you drag, faster the further you drag. Letting go stops the needle where it is, without lifting it off the candy.</p>
+    <ul>
+      <li>Top speed: about 1.1 candy-widths… precisely 260 px/s at full tilt on the 4-player candy (460 px across). The 2-player candy is bigger (680 px), and the needle scales with it so both feel the same.</li>
+      <li>The needle stays inside the candy, and the line pulls it in slightly (a light magnet within 10 px) so the controls don't feel slippery.</li>
+      <li>For Editor testing: P1 uses WASD, P2 the arrow keys, P3 IJKL and P4 the numpad 8/4/5/6.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Why candy cracks</h2>
+    <p>One crack meter per player fills for two reasons and slowly heals when you cut carefully. Cracks spread out from the needle as it fills, so you can see the danger before the candy breaks.</p>
+    <div class="meter">
+      <div class="bar-wrap"><div class="bar"><span style="left:27%">safe</span><span style="left:67%">cracks appear</span><span style="left:90%">breaks at 100%</span></div></div>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Cause</th><th>Rule (starting values)</th><th>How it feels</th></tr></thead>
+        <tbody>
+          <tr><td>Off the line</td><td class="num">&gt;14 px away: +120%/s, more the further off</td><td>Wandering off the line breaks it in under a second.</td></tr>
+          <tr><td>Pushing too hard</td><td class="num">stick tilt &gt;70%: +60%/s × extra tilt</td><td>Rushing at full speed slowly cracks it, even on the line.</td></tr>
+          <tr><td>Careful cutting</td><td class="num">on the line and slow: −15%/s</td><td>Slowing down lets the candy settle.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>With these numbers, a careful cut takes about 8–12 seconds, so a player can afford one crack and still finish within 20 s. If nobody finishes, that's fine: the ranking still sorts everyone by progress.</p>
+  </section>
+
+  <section>
+    <h2>Winning</h2>
+    <div class="cards">
+      <div class="card"><h3>Fastest clean cut</h3><p>Finished players rank by their time. The fastest wins.</p></div>
+      <div class="card"><h3>Time's up at 20 s</h3><p>Players who didn't finish rank below every finisher, by how much of their current candy is carved.</p></div>
+      <div class="card"><h3>Ties</h3><p>Equal times or equal progress share the same rank. A candy that is broken when time runs out counts as 0%. If nobody carved anything, nobody wins.</p></div>
+    </div>
+    <p>Tournament points use the usual 3/2/1/0. This is the first Madang game where everyone plays for themselves; it doesn't use teams.</p>
+  </section>
+
+  <section class="grid2">
+    <div>
+      <h2>Shapes</h2>
+      <p>Each round the four shapes are shuffled, and every player gets a different one. All four outlines are scaled to the same length, so no shape is a shortcut. The umbrella's corners and hook still make it the hardest one.</p>
+      <div class="shapes"><div class="shape"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="var(--candy)"/><path d="M14 38 Q14 12 40 12 Q66 12 66 38 Q57 32 49 38 Q45 34 42.5 37 L42.5 58 Q42.5 66 35 66 Q28 66 28 59 L32 59 Q32 62 35 62 Q37.5 62 37.5 58 L37.5 37 Q35 34 31 38 Q23 32 14 38 Z" fill="none" stroke="var(--line)" stroke-width="2.5" stroke-dasharray="4 3"/></svg>Umbrella · Cái ô</div><div class="shape"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="var(--candy)"/><rect x="19" y="19" width="42" height="42" fill="none" stroke="var(--line)" stroke-width="2.5" stroke-dasharray="4 3"/></svg>Square · Hình vuông</div><div class="shape"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="var(--candy)"/><ellipse cx="40" cy="40" rx="27" ry="19" fill="none" stroke="var(--line)" stroke-width="2.5" stroke-dasharray="4 3"/></svg>Oval · Bầu dục</div><div class="shape"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="var(--candy)"/><polygon points="40.0,10.0 47.4,29.8 68.5,30.7 52.0,43.9 57.6,64.3 40.0,52.6 22.4,64.3 28.0,43.9 11.5,30.7 32.6,29.8" fill="none" stroke="var(--line)" stroke-width="2.5" stroke-dasharray="4 3"/></svg>Star · Ngôi sao</div></div>
+    </div>
+    <div>
+      <h2>Look and sound</h2>
+      <ul>
+        <li>A street-vendor tray seen from above: a round tin for each player, a honeycomb candy and a thin needle.</li>
+        <li>The carved line turns dark brown, and cracks are thin dark lines spreading from the needle.</li>
+        <li>Breaking: the candy crumbles into a few pieces with a crunch, then a fresh candy slides in.</li>
+        <li>Pop: the shape lifts out with a little bounce and a chime.</li>
+        <li>Sounds: a soft scratch while carving, faster ticking clicks as the crack meter fills, a crunch when it breaks and a chime when the shape pops.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Fun facts</h2>
+    <ul>
+      <li>Ppopgi is melted sugar with a pinch of baking soda, pressed flat and stamped with a shape. It was a popular Korean street snack in the 1970s and 80s.</li>
+      <li>The vendor's deal: cut the shape out without breaking it and you get another candy for free.</li>
+      <li>“Dalgona” comes from 달다, “sweet”. In Vietnam the candy is called kẹo đường, sugar candy, and the challenge is called tách kẹo, splitting the candy.</li>
+    </ul>
+    <p class="note"><b>Keeping it Madang:</b> no guards, masks, tracksuits or doll, and no “eliminated” moments. Breaking only means you get a new candy, and the street-stall setting keeps it reading as a snack game.</p>
+  </section>
+
+  <section>
+    <h2>Decisions</h2>
+    <ul>
+      <li><b>2 players:</b> each player gets half the screen and a bigger candy.</li>
+      <li><b>Joysticks:</b> the touch input script reports each player's drag direction. This game uses a joystick per seat instead of one button.</li>
+      <li><b>Cracking:</b> a fresh candy at 0% after 1 s, and your clock keeps running.</li>
+      <li><b>Winning:</b> only the order counts: 1st, 2nd, 3rd, 4th. It's fine if nobody finishes.</li>
+      <li><b>Shapes:</b> umbrella, square, oval and star, shuffled so nobody shares a shape.</li>
+    </ul>
+  </section>
+
+  <footer>Version 1, approved 4 Nov 2026. The spec for Claude Code is in docs/TachKeo.md.</footer>
+</div>

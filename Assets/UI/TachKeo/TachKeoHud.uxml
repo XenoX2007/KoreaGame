@@ -1,0 +1,19 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+  <ui:Template src="../ResultsOverlay.uxml" name="ResultsOverlay" />
+  <ui:Template src="../PauseOverlay.uxml" name="PauseOverlay" />
+  <ui:Style src="TachKeoHud.uss" />
+  <ui:VisualElement name="tachKeoHud" class="app tach-keo" picking-mode="Ignore">
+    <ui:VisualElement name="field" class="field tray" picking-mode="Ignore" />
+    <ui:VisualElement name="stageLayer" class="app stage" picking-mode="Ignore">
+      <ui:VisualElement name="dividerVertical" class="divider divider--vertical" picking-mode="Ignore" />
+      <ui:VisualElement name="dividerHorizontal" class="divider divider--horizontal" picking-mode="Ignore" />
+      <ui:VisualElement name="tinLayer" class="app" picking-mode="Ignore" />
+    </ui:VisualElement>
+    <ui:VisualElement name="seatLayer" class="safe-area" picking-mode="Ignore" />
+    <ui:Label name="timer" class="timer" picking-mode="Ignore" />
+    <ui:Label name="centerMessage" class="center-message" picking-mode="Ignore" />
+    <ui:Button name="togglePlayers" class="btn toggle-players" />
+    <ui:Instance template="ResultsOverlay" class="app" picking-mode="Ignore" />
+    <ui:Instance template="PauseOverlay" class="app" picking-mode="Ignore" />
+  </ui:VisualElement>
+</ui:UXML>

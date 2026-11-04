@@ -170,6 +170,22 @@ public class MenuFlowTests : InputTestFixture
     }
 
     [UnityTest]
+    public IEnumerator TappingTheTachKeoCard_StartsTachKeo()
+    {
+        yield return LoadMenu();
+        var root = MenuRoot();
+
+        yield return Tap(root.Q("fourPlayers"), 1);
+        yield return Tap(root.Q("cardTachKeo"), 2);
+        yield return WaitForScene("TachKeo");
+
+        Assert.AreEqual("TachKeo", SceneManager.GetActiveScene().name);
+        var game = Object.FindAnyObjectByType<TachKeoGame>();
+        Assert.AreEqual(4, game.PlayerCount);
+        while (!game.IsRunning) yield return null;
+    }
+
+    [UnityTest]
     public IEnumerator ChoosingALanguage_ChangesTheWholeMenu()
     {
         var before = Localization.Current;
@@ -316,7 +332,7 @@ public class MenuFlowTests : InputTestFixture
         yield return Tap(root.Q("tournament"), 1);
 
         int touch = 2;
-        foreach (var scene in new[] { "NguoiGo", "KeoCo", "DaCau", "BanBi" })
+        foreach (var scene in new[] { "NguoiGo", "KeoCo", "DaCau", "BanBi", "TachKeo" })
         {
             yield return WaitForScene(scene);
             Assert.AreEqual(scene, SceneManager.GetActiveScene().name);
