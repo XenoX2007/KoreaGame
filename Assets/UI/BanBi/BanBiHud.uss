@@ -1,27 +1,30 @@
-/* Top-down square. 600 x 600 and top: 42% must match ZoneHalf (300) and ZoneCenterY in BanBiGame.cs. */
+/* The circle, marbles, hand, button and side columns are sized and placed by BanBiGame from the
+   stage height; this file keeps only their look. */
 .zone {
     position: absolute;
-    left: 50%;
-    top: 42%;
-    width: 600px;
-    height: 600px;
-    margin-left: -300px;
-    margin-top: -300px;
-    border-width: 10px;
-    border-radius: 10px;
+    left: 0;
+    top: 0;
+    border-width: 12px;
     border-color: var(--ink);
     background-color: #EBD7A8;
 }
 
-/* Size must match MarbleSize in BanBiGame.cs (2 x marbleRadius x ZoneHalf = 42). */
+/* Chalk dots where the start marbles lie, shown during the dice roll. */
+.start-dot {
+    position: absolute;
+    left: -3px;
+    top: -3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 3px;
+    background-color: rgba(59, 42, 26, 0.3);
+}
+
 .marble {
     position: absolute;
     left: 0;
     top: 0;
-    width: 42px;
-    height: 42px;
-    border-radius: 21px;
-    border-width: 2px;
+    border-width: 3px;
     border-color: var(--ink);
 }
 
@@ -32,8 +35,7 @@
     right: 0;
     top: 0;
     bottom: 0;
-    border-radius: 19px;
-    border-width: 3px;
+    border-width: 4px;
     border-color: #FFFFFF;
 }
 
@@ -47,32 +49,27 @@
 
 .marble-shine {
     position: absolute;
-    left: 7px;
-    top: 6px;
-    width: 11px;
-    height: 11px;
-    border-radius: 6px;
+    left: 17%;
+    top: 14%;
+    width: 26%;
+    height: 26%;
     background-color: rgba(255, 255, 255, 0.8);
 }
 
-/* Offset (4, 5) by BanBiGame. */
 .marble-shadow {
     position: absolute;
     left: 0;
     top: 0;
-    width: 42px;
-    height: 42px;
-    border-radius: 21px;
     background-color: rgba(59, 42, 26, 0.35);
 }
 
 .aim-dot {
     position: absolute;
-    left: -5px;
-    top: -5px;
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
+    left: -7px;
+    top: -7px;
+    width: 14px;
+    height: 14px;
+    border-radius: 7px;
     background-color: var(--ink);
 }
 
@@ -80,7 +77,7 @@
     opacity: 0.3;
 }
 
-/* A point at the fingertips, placed by BanBiGame; the pieces hang below it. */
+/* A point at the fingertips, placed by BanBiGame; the arm hangs below it, off the screen. */
 .hand {
     position: absolute;
     left: 0;
@@ -89,13 +86,13 @@
     height: 0;
 }
 
-/* The arm slices hang down with the hand at the bottom, so turn them to point up at the square. */
+/* The arm slices hang down with the hand at the bottom, so turn them to point up at the circle. */
 .hand-sprite {
     position: absolute;
-    left: -35px;
+    left: -49px;
     top: 0;
-    width: 70px;
-    height: 186px;
+    width: 98px;
+    height: 260px;
     rotate: 180deg;
     -unity-background-scale-mode: scale-to-fit;
 }
@@ -109,42 +106,78 @@
 }
 
 .hand-shadow {
-    translate: 6px 6px;
+    translate: 8px 8px;
     opacity: 0.4;
     -unity-background-image-tint-color: #000000;
 }
 
-.hand-name {
+/* The shared shoot button, in the active team's color with the .btn edge. */
+.shoot-button {
     position: absolute;
-    left: 46px;
-    top: 40px;
-    width: 72px;
+    left: 0;
+    top: 0;
+    align-items: center;
+    justify-content: center;
+    border-bottom-width: 10px;
+    background-color: #E5383B;
+    border-bottom-color: #A8262A;
+    transition-property: translate, opacity;
+    transition-duration: 90ms, 200ms;
+}
+
+.shoot-button--blue {
+    background-color: #2B6CF6;
+    border-bottom-color: #1A47A8;
+}
+
+.shoot-button.is-pressed {
+    border-bottom-width: 4px;
+}
+
+.shoot-button.is-disabled {
+    opacity: 0.45;
+}
+
+.shoot-button__icon {
+    width: 44px;
     height: 44px;
+    background-image: url("project://database/Assets/UI/Art/icon-thumb.svg");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.shoot-button__label {
     margin: 0;
     padding: 0;
-    border-radius: 22px;
+    font-size: 36px;
+    color: var(--paper);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--ink);
+}
+
+.shoot-button__name {
+    position: absolute;
+    bottom: -22px;
+    width: 72px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    border-radius: 20px;
     border-width: 3px;
     border-color: var(--paper);
-    font-size: 26px;
+    background-color: var(--ink);
+    font-size: 24px;
     color: var(--paper);
     -unity-text-align: middle-center;
 }
 
-.hand--vn .hand-name {
-    background-color: #E5383B;
-}
-
-.hand--kr .hand-name {
-    background-color: #2B6CF6;
-}
-
-/* Beside the square, on each team's side. */
+/* In the side strips, placed by BanBiGame. */
 .team-count {
     position: absolute;
-    top: 42%;
+    left: 0;
+    top: 0;
     width: 170px;
     height: 70px;
-    margin: -35px 0 0 0;
+    margin: -35px 0 0 -85px;
     padding: 0;
     border-radius: 35px;
     font-size: 36px;
@@ -153,31 +186,61 @@
 }
 
 .team-count--vn {
-    left: 50%;
-    margin-left: -500px;
     background-color: #E5383B;
 }
 
 .team-count--kr {
-    left: 50%;
-    margin-left: 330px;
     background-color: #2B6CF6;
 }
 
-.timer--turn {
-    font-size: 30px;
+/* Under the active team's counter, placed by BanBiGame (left/top = its top center).
+   Height must match TurnRowHeight in BanBiGame.cs. */
+.turn-row {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100px;
+    flex-direction: row;
+    align-items: center;
+    translate: -50% 0;
+}
+
+.turn-label {
+    height: 88px;
+    margin: 0;
+    padding: 0 28px;
+    border-radius: 44px;
+    background-color: var(--paper);
+    font-size: 46px;
+    color: var(--ink);
+    -unity-text-align: middle-center;
+}
+
+/* The countdown: a bigger round pill beside the turn count. */
+.ban-bi .timer {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100px;
+    height: 100px;
+    margin: 0 0 0 12px;
+    border-radius: 50px;
+    border-width: 5px;
+    border-color: var(--ink);
+    font-size: 64px;
 }
 
 .hint {
     position: absolute;
     left: 0;
-    right: 0;
-    bottom: 26px;
-    margin: 0;
+    top: 0;
+    width: 240px;
+    margin: 0 0 0 -120px;
     padding: 0;
-    font-size: 32px;
+    font-size: 26px;
+    white-space: normal;
     color: var(--paper);
-    -unity-text-align: middle-center;
+    -unity-text-align: upper-center;
     -unity-text-outline-width: 2px;
     -unity-text-outline-color: var(--ink);
 }
@@ -228,4 +291,11 @@
 
 .seat.is-waiting .seat-disc {
     opacity: 0.5;
+}
+
+/* The circle covers the top center, so the pause button moves to the top-left strip,
+   clear of a notch and of the 4-player top-left seat. */
+.ban-bi .pause-button {
+    left: 5%;
+    margin: 0;
 }

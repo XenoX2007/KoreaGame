@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -86,6 +87,70 @@ public class MenuFlowTests : InputTestFixture
         Assert.AreEqual(4, GameManager.Instance.PlayerCount);
         Assert.AreEqual(SessionMode.Single, GameManager.Instance.Mode);
         Assert.AreEqual(4, Object.FindAnyObjectByType<KeoCoGame>().PlayerCount);
+    }
+
+    static BanBiModel ModelOf(BanBiGame game) =>
+        (BanBiModel)typeof(BanBiGame).GetField("_model", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(game);
+
+    // Plays BanBi directly and lets the dice stop on their own.
+    static IEnumerator LoadBanBiToFirstTurn()
+    {
+        yield return SceneManager.LoadSceneAsync("BanBi");
+        float giveUp = Time.realtimeSinceStartup + 15f;
+        var game = Object.FindAnyObjectByType<BanBiGame>();
+        while ((ModelOf(game) == null || ModelOf(game).Phase != BanBiPhase.Aiming) && Time.realtimeSinceStartup < giveUp) yield return null;
+        Assert.AreEqual(BanBiPhase.Aiming, ModelOf(game).Phase);
+        // Let the shoot button lay out and register its zone.
+        yield return null;
+        yield return null;
+    }
+
+    IEnumerator Hold(Vector2 position, int touchId, float seconds)
+    {
+        BeginTouch(touchId, position);
+        yield return new WaitForSecondsRealtime(seconds);
+        EndTouch(touchId, position);
+        yield return null;
+    }
+
+    [UnityTest]
+    public IEnumerator BanBi_TheShootButtonShootsForTheActivePlayer_AndSeatsDoNot()
+    {
+        yield return LoadBanBiToFirstTurn();
+        var game = Object.FindAnyObjectByType<BanBiGame>();
+        var model = ModelOf(game);
+        var hud = HudOf(game);
+        int active = model.ActivePlayer;
+        int marbles = model.Marbles.Count;
+
+        var seat = hud.Q("seatLayer").Children().First(view => view.ClassListContains($"player--p{active + 1}"));
+        yield return Hold(ScreenPoint(seat), 1, 0.3f);
+        Assert.AreEqual(BanBiPhase.Aiming, model.Phase, "A seat press doesn't shoot during a turn");
+        Assert.AreEqual(marbles, model.Marbles.Count);
+
+        BeginTouch(2, ScreenPoint(hud.Q("shootButton")));
+        yield return null;
+        yield return null;
+        Assert.AreEqual(BanBiPhase.Charging, model.Phase);
+        EndTouch(2, ScreenPoint(hud.Q("shootButton")));
+        yield return null;
+        yield return null;
+
+        Assert.AreEqual(marbles + 1, model.Marbles.Count);
+        Assert.AreEqual(active, model.Marbles.Last().ShotBy);
+    }
+
+    [UnityTest]
+    public IEnumerator BanBi_TheShootButtonZoneIsGoneAfterLeavingTheScene()
+    {
+        yield return LoadBanBiToFirstTurn();
+        Assert.IsTrue(PlayerInputRouter.Instance.HasExtraZone(BanBiGame.ShootId));
+
+        SceneManager.SetActiveScene(SceneManager.CreateScene("BanBiLeft"));
+        yield return SceneManager.UnloadSceneAsync("BanBi");
+        yield return null;
+
+        Assert.IsFalse(PlayerInputRouter.Instance.HasExtraZone(BanBiGame.ShootId));
     }
 
     [UnityTest]

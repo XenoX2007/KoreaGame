@@ -22,7 +22,7 @@ public enum BanBiEventKind
     Shot,         // Player, Other = the new marble's index, Value = power
     Hit,          // Player, Other = marble indices, Value = impulse
     MarbleOut,    // Player = marble index, Other = shooter
-    Missed,       // Player: the shot marble left the square without touching anything
+    Missed,       // Player: the shot marble left the circle without touching anything
     BonusShot,    // Player
     Finished,     // Player = winning team, -1 for a draw
 }
@@ -46,11 +46,11 @@ public readonly struct BanBiEvent
 [Serializable]
 public class BanBiSettings
 {
-    [Header("Marbles (zone units: the square spans -1..1)")]
-    public int startMarblesPerTeam = 3;
-    [Tooltip("Start marbles go inside |x|, |y| <= this.")]
-    public float startArea = 0.7f;
-    public float marbleRadius = 0.07f;
+    [Header("Marbles (zone units: the circle has radius 1)")]
+    public int startMarblesPerTeam = 6;
+    [Tooltip("Start marbles go inside a circle of this radius.")]
+    public float startArea = 0.65f;
+    public float marbleRadius = 0.085f;
 
     [Header("Dice (seconds)")]
     public float diceFaceSeconds = 0.08f;
@@ -61,11 +61,11 @@ public class BanBiSettings
     [Header("Turn")]
     [Tooltip("Time to press before the turn is skipped.")]
     public float turnSeconds = 10f;
-    [Tooltip("The hand slides within +-this along the bottom edge.")]
-    public float slideRange = 0.85f;
+    [Tooltip("The hand slides within +-this below the circle.")]
+    public float slideRange = 0.75f;
     public float slideHz = 0.5f;
-    [Tooltip("Where the marble leaves the hand, just below the bottom edge.")]
-    public float launchY = -1.2f;
+    [Tooltip("Where the marble leaves the hand, just below the circle.")]
+    public float launchY = -1.1f;
     [Tooltip("Power goes 0 -> 1 in this time, then back down.")]
     public float chargeSeconds = 1.2f;
     [Tooltip("A hold this long releases on its own.")]
@@ -89,7 +89,7 @@ public class BanBiSettings
     public int shotsPerTeam = 8;
 }
 
-// One marble in the square, in zone units (center at the origin, y toward the top of the screen).
+// One marble in the circle, in zone units (center at the origin, y toward the top of the screen).
 public class MarbleState
 {
     public readonly int Team;  // 0 red / Vietnam, 1 blue / Korea
@@ -156,10 +156,10 @@ public static class BanBiPhysics
 }
 
 // Rules of Bắn Bi / Guseul-chigi, independent of rendering and input. Top-down team marbles:
-// dice decide the order, then on each turn the team's hand slides along the bottom edge of the
-// square (press = stop, hold = pull back, release = shoot straight up). Shot marbles that stay
-// in the square join their team; knocking a rival marble out earns a bonus shot. A team left with
-// no marbles loses; otherwise after shotsPerTeam shots each, more marbles in the square wins.
+// dice decide the order, then on each turn the team's hand slides along a straight line below the
+// circle (press = stop, hold = pull back, release = shoot straight up). Shot marbles that stay
+// in the circle join their team; knocking a rival marble out earns a bonus shot. A team left with
+// no marbles loses; otherwise after shotsPerTeam shots each, more marbles in the circle wins.
 // Every time is an explicit argument, so the model is fully deterministic.
 public class BanBiModel
 {
@@ -212,13 +212,13 @@ public class BanBiModel
         PlaceStartMarbles(new System.Random(seed));
     }
 
-    public static bool IsOut(Vector2 position) => Mathf.Abs(position.x) > 1f || Mathf.Abs(position.y) > 1f;
+    public static bool IsOut(Vector2 position) => position.sqrMagnitude > 1f;
 
     public bool IsDieSpinning(int player) => _spinning[player];
     public int OrderOf(int player) => _turnOrder.IndexOf(player); // -1 before the dice decide
     public int ShotsTaken(int team) => _shotsTaken[team];
 
-    // Marbles of this team in the square.
+    // Marbles of this team in the circle.
     public int TeamCount(int team) => _marbles.Count(marble => marble.InPlay && marble.Team == team);
 
     // The active team's regular shot, from 1 to shotsPerTeam.
@@ -505,7 +505,7 @@ public class BanBiModel
         Emit(BanBiEventKind.Hit, a, b, impulse);
     }
 
-    // Marbles that moved and stopped outside the square are gone, whoever they belong to.
+    // Marbles that moved and stopped outside the circle are gone, whoever they belong to.
     void ResolveShot(double time)
     {
         int shooter = ActivePlayer;
@@ -557,7 +557,7 @@ public class BanBiModel
         StartTurn(_turnOrder[index], time);
     }
 
-    // More marbles in the square wins; on equal counts, the team with the marble closest to the center.
+    // More marbles in the circle wins; on equal counts, the team with the marble closest to the center.
     void FinishOnCount()
     {
         int red = TeamCount(0);
@@ -599,9 +599,9 @@ public class BanBiModel
             var marble = new MarbleState(n % 2, Vector2.zero);
             for (int attempt = 0; attempt < 500; attempt++)
             {
-                marble.Position = new Vector2(
-                    (float)(random.NextDouble() * 2.0 - 1.0) * _settings.startArea,
-                    (float)(random.NextDouble() * 2.0 - 1.0) * _settings.startArea);
+                var point = new Vector2((float)(random.NextDouble() * 2.0 - 1.0), (float)(random.NextDouble() * 2.0 - 1.0));
+                if (point.sqrMagnitude > 1f) continue; // outside the start circle
+                marble.Position = point * _settings.startArea;
                 if (!_marbles.Any(other => (other.Position - marble.Position).magnitude < spacing)) break;
             }
             _marbles.Add(marble);

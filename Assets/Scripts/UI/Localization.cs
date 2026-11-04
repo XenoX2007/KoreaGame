@@ -106,7 +106,8 @@ public static class Localization
         { "Thêm lượt!", new[] { "한 번 더!", "Bonus shot!" } },
         { "Hụt!", new[] { "빗나갔어요!", "Missed!" } },
         { "Lượt {0}/{1}", new[] { "{0}/{1} 턴", "Turn {0}/{1}" } },
-        { "Giữ để kéo, thả để búng", new[] { "꾹 눌러 당기고, 떼서 튕겨요", "Hold to pull, release to flick" } },
+        { "Giữ nút để kéo, thả để bắn", new[] { "버튼을 꾹 눌러 당기고, 떼서 튕겨요", "Hold the button to pull, release to flick" } },
+        { "Bắn!", new[] { "튕겨요!", "Flick!" } },
     };
 
     static Language? _current;

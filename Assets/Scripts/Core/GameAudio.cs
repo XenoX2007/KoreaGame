@@ -10,7 +10,7 @@ public class GameAudio : MonoBehaviour
 
     public const float MusicVolume = 0.5f;
     public const float DuckedVolume = 0.15f;
-    const float VictoryVolume = 1f;
+    const float VictoryVolume = 0.75f;
     const float FadeSeconds = 0.5f;  // from full volume to silence
 
     AudioSource _music;

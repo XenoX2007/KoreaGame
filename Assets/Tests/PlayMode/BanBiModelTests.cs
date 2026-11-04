@@ -103,8 +103,7 @@ public class BanBiModelTests
         Assert.AreEqual(settings.startMarblesPerTeam, model.TeamCount(1));
         foreach (var marble in model.Marbles)
         {
-            Assert.LessOrEqual(Mathf.Abs(marble.Position.x), settings.startArea);
-            Assert.LessOrEqual(Mathf.Abs(marble.Position.y), settings.startArea);
+            Assert.LessOrEqual(marble.Position.magnitude, settings.startArea + 1e-5f);
             Assert.AreEqual(-1, marble.ShotBy);
             foreach (var other in model.Marbles)
                 if (other != marble)
@@ -121,6 +120,14 @@ public class BanBiModelTests
 
         CollectionAssert.AreEqual(first.Marbles.Select(m => m.Position), second.Marbles.Select(m => m.Position));
         CollectionAssert.AreNotEqual(first.Marbles.Select(m => m.Position), other.Marbles.Select(m => m.Position));
+    }
+
+    [Test]
+    public void IsOut_IsOutsideTheCircle()
+    {
+        Assert.IsTrue(BanBiModel.IsOut(new Vector2(0.8f, 0.8f)), "outside the circle, inside the old square");
+        Assert.IsFalse(BanBiModel.IsOut(new Vector2(0.7f, 0f)));
+        Assert.IsTrue(BanBiModel.IsOut(new Vector2(0f, -1.05f)));
     }
 
     // ---- Dice ----
@@ -395,6 +402,36 @@ public class BanBiModelTests
         Assert.IsFalse(model.Marbles.Last().InPlay);
         Assert.AreEqual(settings.startMarblesPerTeam, model.TeamCount(team));
         CollectionAssert.AreEqual(new[] { shooter }, missed);
+    }
+
+    [Test]
+    public void AMediumShotFromTheEndOfTheSlide_EntersThroughTheCurvedEdge_AndStays()
+    {
+        var settings = new BanBiSettings();
+        var model = NewModel(2, settings);
+        RollToFirstTurn(model);
+        int team = model.ActiveTeam;
+        int player = model.ActivePlayer;
+        ClearTheZone(model);
+
+        // The hand reaches the right end of its slide a quarter of the way through a cycle.
+        double time = model.PhaseStart + 0.25 / settings.slideHz;
+        Assert.AreEqual(settings.slideRange, model.HandX(time), 1e-4f);
+        Assert.IsTrue(BanBiModel.IsOut(new Vector2(settings.slideRange, -0.7f)), "the circle's edge is curved here");
+        model.Press(player, true, time);
+        time += settings.chargeSeconds * 0.5;
+        model.Press(player, false, time);
+        while (model.Phase == BanBiPhase.Rolling)
+        {
+            time += Frame;
+            model.Advance(time);
+        }
+
+        var shot = model.Marbles.Last();
+        Assert.IsTrue(shot.InPlay);
+        Assert.AreEqual(settings.slideRange, shot.Position.x, 1e-4f);
+        Assert.Greater(shot.Position.y, 0f);
+        Assert.AreEqual(settings.startMarblesPerTeam + 1, model.TeamCount(team));
     }
 
     // ---- Knockouts ----

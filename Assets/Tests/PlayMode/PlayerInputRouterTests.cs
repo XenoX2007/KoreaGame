@@ -115,6 +115,77 @@ public class PlayerInputRouterTests : InputTestFixture
         CollectionAssert.AreEqual(new[] { "P1+", "P2+", "P1-", "P2-" }, _events);
     }
 
+    static readonly Rect Button = new Rect(0.7f, 0f, 0.1f, 0.15f); // over P4's seat zone
+
+    [Test]
+    public void TouchStartingInAnExtraZone_PressesItsIdInsteadOfTheSeat()
+    {
+        _router.RegisterExtraZone(SeatLayout.MaxPlayers, Button);
+
+        BeginTouch(1, At(0.75f, 0.05f));
+        Assert.IsTrue(_router.IsPressed(SeatLayout.MaxPlayers));
+        Assert.IsFalse(_router.IsPressed(3));
+
+        EndTouch(1, At(0.75f, 0.05f));
+        CollectionAssert.AreEqual(new[] { "P5+", "P5-" }, _events);
+    }
+
+    [Test]
+    public void TouchSlidingOutOfAnExtraZone_StaysWithItUntilLift()
+    {
+        _router.RegisterExtraZone(SeatLayout.MaxPlayers, Button);
+
+        BeginTouch(1, At(0.75f, 0.05f));
+        MoveTouch(1, At(0.9f, 0.4f));
+        Assert.IsTrue(_router.IsPressed(SeatLayout.MaxPlayers));
+        Assert.IsFalse(_router.IsPressed(3));
+
+        EndTouch(1, At(0.9f, 0.4f));
+        CollectionAssert.AreEqual(new[] { "P5+", "P5-" }, _events);
+    }
+
+    [Test]
+    public void AfterClearingExtraZones_TheSameSpotIsTheSeatAgain()
+    {
+        _router.RegisterExtraZone(SeatLayout.MaxPlayers, Button);
+        _router.ClearExtraZones();
+
+        BeginTouch(1, At(0.75f, 0.05f));
+
+        CollectionAssert.AreEqual(new[] { "P4+" }, _events);
+    }
+
+    [Test]
+    public void IgnoredZone_WinsOverAnExtraZone()
+    {
+        _router.RegisterExtraZone(SeatLayout.MaxPlayers, Button);
+        var pause = new Rect(0.7f, 0f, 0.05f, 0.1f);
+        _router.IgnoredZones.Add(pause);
+
+        BeginTouch(1, At(0.72f, 0.05f));
+
+        Assert.IsEmpty(_events);
+        _router.IgnoredZones.Remove(pause);
+    }
+
+    [UnityTest]
+    public IEnumerator Space_PressesTheExtraZone_OnlyWhileItIsRegistered()
+    {
+        Press(_keyboard.spaceKey);
+        yield return null;
+        Assert.IsEmpty(_events);
+        Release(_keyboard.spaceKey);
+        yield return null;
+
+        _router.RegisterExtraZone(SeatLayout.MaxPlayers, Button);
+        Press(_keyboard.spaceKey);
+        yield return null;
+        Release(_keyboard.spaceKey);
+        yield return null;
+
+        CollectionAssert.AreEqual(new[] { "P5+", "P5-" }, _events);
+    }
+
     [UnityTest]
     public IEnumerator SeatKeys_PressMatchingPlayers()
     {

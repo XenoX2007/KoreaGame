@@ -7,11 +7,14 @@ using ETouch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 // Turns touches (and keyboard/mouse in the Editor) into per-player press/release events.
 // A finger belongs to the seat zone it first touched until it lifts, even if it slides away.
+// Extra zones (e.g. a shared button) sit on top of the seats and press ids from MaxPlayers up.
 public class PlayerInputRouter : MonoBehaviour
 {
     // Spatial keyboard mapping for testing on PC: Z = bottom-left, P = top-right, Q = top-left, M = bottom-right.
     static readonly Key[] PlayerKeys = { Key.Z, Key.P, Key.Q, Key.M };
     const int MouseFingerId = -1;
+    const int MaxExtraZones = 2;
+    const int MaxIds = SeatLayout.MaxPlayers + MaxExtraZones;
 
     static PlayerInputRouter _instance;
     static bool _quitting;
@@ -26,8 +29,9 @@ public class PlayerInputRouter : MonoBehaviour
     public int ActiveFingerCount => _fingerToPlayer.Count;
 
     readonly Dictionary<int, int> _fingerToPlayer = new Dictionary<int, int>();
-    readonly int[] _sourceCount = new int[SeatLayout.MaxPlayers];
-    readonly bool[] _keyHeld = new bool[SeatLayout.MaxPlayers];
+    readonly int[] _sourceCount = new int[MaxIds];
+    readonly bool[] _keyHeld = new bool[MaxIds];
+    readonly Dictionary<int, Rect> _extraZones = new Dictionary<int, Rect>();
     Seat[] _seats = Array.Empty<Seat>();
     int _soloPlayer = -1;
 
@@ -60,6 +64,7 @@ public class PlayerInputRouter : MonoBehaviour
     {
         ReleaseAll();
         _seats = SeatLayout.Get(playerCount);
+        _extraZones.Clear();
         PlayerCount = playerCount;
         _soloPlayer = -1;
     }
@@ -69,11 +74,25 @@ public class PlayerInputRouter : MonoBehaviour
     {
         ReleaseAll();
         _seats = new[] { new Seat(playerId, new Rect(0f, 0f, 1f, 1f), Vector2.zero, 0f) };
+        _extraZones.Clear();
         PlayerCount = 1;
         _soloPlayer = playerId;
     }
 
     public bool IsPressed(int playerId) => _sourceCount[playerId] > 0;
+
+    // A normalized screen rect whose new touches press this id (SeatLayout.MaxPlayers or above)
+    // instead of the seat underneath. Registering the same id again moves its zone.
+    public void RegisterExtraZone(int id, Rect normalizedRect)
+    {
+        if (id < SeatLayout.MaxPlayers || id >= MaxIds) throw new ArgumentOutOfRangeException(nameof(id), id, "Extra zone ids start at SeatLayout.MaxPlayers.");
+        _extraZones[id] = normalizedRect;
+    }
+
+    // Fingers already down stay with their zone's id until they lift.
+    public void ClearExtraZones() => _extraZones.Clear();
+
+    public bool HasExtraZone(int id) => _extraZones.ContainsKey(id);
 
     void Awake()
     {
@@ -134,6 +153,8 @@ public class PlayerInputRouter : MonoBehaviour
         }
 
         for (int i = 0; i < PlayerCount; i++) PollKey(keyboard[PlayerKeys[i]].isPressed, i);
+        // Space is the first extra zone, while it's there.
+        PollKey(keyboard[Key.Space].isPressed && HasExtraZone(SeatLayout.MaxPlayers), SeatLayout.MaxPlayers);
     }
 
     void PollKey(bool held, int player)
@@ -182,6 +203,9 @@ public class PlayerInputRouter : MonoBehaviour
         foreach (var zone in IgnoredZones)
             if (zone.Contains(point)) return -1;
 
+        foreach (var extra in _extraZones)
+            if (extra.Value.Contains(point)) return extra.Key;
+
         foreach (var seat in _seats)
             if (seat.Zone.Contains(point)) return seat.PlayerId;
 
@@ -202,7 +226,7 @@ public class PlayerInputRouter : MonoBehaviour
     void ReleaseAll()
     {
         _fingerToPlayer.Clear();
-        for (int i = 0; i < SeatLayout.MaxPlayers; i++)
+        for (int i = 0; i < MaxIds; i++)
         {
             _keyHeld[i] = false;
             if (_sourceCount[i] == 0) continue;
