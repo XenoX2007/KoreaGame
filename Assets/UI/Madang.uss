@@ -439,6 +439,17 @@
     -unity-text-align: middle-center;
 }
 
+/* "Trò 2/3" above the title, in a tournament only. */
+.result-stage {
+    display: none;
+    margin: 0 0 -12px 0;
+    padding: 0;
+    height: 48px;
+    font-size: 36px;
+    color: var(--rose-deep);
+    -unity-text-align: middle-center;
+}
+
 .result-fact {
     margin: 12px 0 28px 0;
     padding: 0;
@@ -505,3 +516,57 @@
     background-image: url("project://database/Assets/UI%20Assets/B_Play.png");
     -unity-background-scale-mode: scale-to-fit;
 }
+
+/* The mini games' icons: menu cards, cup screen and podium. */
+.card-icon {
+    width: 116px;
+    height: 116px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.card-icon--rope {
+    background-image: url("project://database/Assets/UI/Art/icon-rope.svg");
+}
+
+.card-icon--mugunghwa {
+    background-image: url("project://database/Assets/UI/Art/icon-mugunghwa.svg");
+}
+
+.card-icon--shuttlecock {
+    background-image: url("project://database/Assets/UI/Art/icon-shuttlecock.svg");
+}
+
+.card-icon--candy {
+    background-image: url("project://database/Assets/UI/Art/icon-candy.svg");
+}
+
+.card-icon--hotpot {
+    background-image: url("project://database/Assets/UI%20Assets/UI%20Button(2)/Hotpot/Full.png?fileID=-5063605252318705730&guid=29872523d8fb08c4eb5b200eb6f46aab&type=3#Full_0");
+}
+
+/* Sized relative to the icon, so it works at any size. The two teams' marbles side by side, just touching. */
+.card-icon--marble {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-marble {
+    width: 74%;
+    height: 74%;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.card-marble--vn {
+    margin-right: -12%;
+    translate: 0 -9%;
+    background-image: url("project://database/Assets/UI%20Assets/VN%20(Blue).png?fileID=-6213919199924930305&guid=57b60c2b2a3385b499ecd1327277332c&type=3#VN%20(Blue)_0");
+}
+
+.card-marble--kr {
+    translate: 0 9%;
+    background-image: url("project://database/Assets/UI%20Assets/KR%20(Red).png?fileID=-7028137374346497254&guid=09fb73fde01c8f04ab5df83bc9112a81&type=3#KR%20(Red)_0");
+}
+

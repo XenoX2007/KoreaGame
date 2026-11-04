@@ -1,6 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements">
   <ui:VisualElement name="results" class="results">
     <ui:VisualElement class="results-card" picking-mode="Ignore">
+      <ui:Label name="resultStage" class="result-stage" picking-mode="Ignore" />
       <ui:Label name="resultTitle" class="result-title" picking-mode="Ignore" />
       <ui:Label name="resultFact" class="result-fact" picking-mode="Ignore" />
       <ui:VisualElement class="result-actions" picking-mode="Ignore">

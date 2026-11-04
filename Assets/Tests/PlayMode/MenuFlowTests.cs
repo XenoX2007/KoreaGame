@@ -16,6 +16,7 @@ public class MenuFlowTests : InputTestFixture
     {
         base.Setup();
         InputSystem.AddDevice<Touchscreen>();
+        ForgetCupChoice();
     }
 
     // Runs before TearDown. A UI panel left loaded keeps Unity's input-for-UI provider alive past this
@@ -34,6 +35,7 @@ public class MenuFlowTests : InputTestFixture
         if (GameManager.Instance != null) Object.DestroyImmediate(GameManager.Instance.gameObject);
         var router = Object.FindAnyObjectByType<PlayerInputRouter>();
         if (router != null) Object.DestroyImmediate(router.gameObject);
+        RestoreCupChoice();
         base.TearDown();
     }
 
@@ -354,18 +356,169 @@ public class MenuFlowTests : InputTestFixture
         yield return new WaitForSecondsRealtime(0.6f);
     }
 
+    // The cup screen remembers the last cup and picks: each test starts from none, and the player's own come back after.
+    string _savedCupKind;
+    string _savedCupMini;
+    int _touch = 100;
+
+    void ForgetCupChoice()
+    {
+        _savedCupKind = PlayerPrefs.HasKey("cup.kind") ? PlayerPrefs.GetInt("cup.kind").ToString() : null;
+        _savedCupMini = PlayerPrefs.HasKey("cup.mini") ? PlayerPrefs.GetString("cup.mini") : null;
+        PlayerPrefs.DeleteKey("cup.kind");
+        PlayerPrefs.DeleteKey("cup.mini");
+    }
+
+    void RestoreCupChoice()
+    {
+        if (_savedCupKind != null) PlayerPrefs.SetInt("cup.kind", int.Parse(_savedCupKind));
+        else PlayerPrefs.DeleteKey("cup.kind");
+        if (_savedCupMini != null) PlayerPrefs.SetString("cup.mini", _savedCupMini);
+        else PlayerPrefs.DeleteKey("cup.mini");
+        PlayerPrefs.Save();
+    }
+
+    IEnumerator OpenCupScreen()
+    {
+        yield return LoadMenu();
+        yield return Tap(MenuRoot().Q("tournament"), _touch++);
+        yield return new WaitForSecondsRealtime(0.4f);
+    }
+
+    // A tile's order number, or null when it isn't in the cup.
+    static string Badge(VisualElement root, string scene)
+    {
+        var badge = root.Q($"cupTile{scene}").Q<Label>(className: "cup-badge");
+        return badge.resolvedStyle.display == DisplayStyle.Flex ? badge.text : null;
+    }
+
+    static string[] Numbered(VisualElement root) =>
+        CupPicker.StoryOrder.Where(scene => Badge(root, scene) != null).OrderBy(scene => int.Parse(Badge(root, scene))).ToArray();
+
     [UnityTest]
-    public IEnumerator Tournament_PlaysEveryGameInOrder_ThenShowsThePodium()
+    public IEnumerator Tournament_OpensTheCupScreen_WithoutLoadingAGame()
     {
         yield return LoadMenu();
         var root = MenuRoot();
         Assert.IsTrue(root.Q("tournament").enabledSelf);
         Assert.IsFalse(root.Q("tournament").ClassListContains("is-soon"));
+        Assert.AreEqual(DisplayStyle.None, root.Q("cupPanel").resolvedStyle.display);
 
-        yield return Tap(root.Q("tournament"), 1);
+        yield return Tap(root.Q("tournament"), _touch++);
+        yield return new WaitForSecondsRealtime(0.4f);
 
-        int touch = 2;
-        foreach (var scene in new[] { "NguoiGo", "KeoCo", "DaCau", "BanBi", "TachKeo", "LauTokbokki" })
+        Assert.AreEqual(DisplayStyle.Flex, root.Q("cupPanel").resolvedStyle.display);
+        Assert.AreEqual("Menu", SceneManager.GetActiveScene().name);
+        Assert.IsTrue(root.Q("cupMini").ClassListContains("is-selected"), "Mini Cup is the default");
+        CollectionAssert.IsEmpty(Numbered(root));
+        Assert.IsFalse(root.Q("cupStart").enabledSelf);
+    }
+
+    [UnityTest]
+    public IEnumerator CupScreen_BackClosesIt()
+    {
+        yield return OpenCupScreen();
+        var root = MenuRoot();
+
+        yield return Tap(root.Q("cupBack"), _touch++);
+        Assert.AreEqual(DisplayStyle.None, root.Q("cupPanel").resolvedStyle.display);
+        Assert.AreEqual("Menu", SceneManager.GetActiveScene().name);
+    }
+
+    [UnityTest]
+    public IEnumerator MiniCup_TilesNumberInTapOrder_AFourthIsRefused_AndRemovingRenumbers()
+    {
+        yield return OpenCupScreen();
+        var root = MenuRoot();
+
+        foreach (var scene in new[] { "KeoCo", "DaCau", "BanBi" })
+            yield return Tap(root.Q($"cupTile{scene}"), _touch++);
+        CollectionAssert.AreEqual(new[] { "KeoCo", "DaCau", "BanBi" }, Numbered(root));
+        Assert.AreEqual("1", Badge(root, "KeoCo"));
+        Assert.AreEqual("3", Badge(root, "BanBi"));
+        Assert.IsTrue(root.Q("cupStart").enabledSelf);
+
+        yield return Tap(root.Q("cupTileTachKeo"), _touch++);
+        Assert.IsNull(Badge(root, "TachKeo"), "A 4th game isn't added");
+        CollectionAssert.AreEqual(new[] { "KeoCo", "DaCau", "BanBi" }, Numbered(root));
+
+        yield return Tap(root.Q("cupTileDaCau"), _touch++);
+        Assert.IsNull(Badge(root, "DaCau"));
+        Assert.AreEqual("2", Badge(root, "BanBi"), "Later picks move down");
+        Assert.IsFalse(root.Q("cupStart").enabledSelf);
+    }
+
+    [UnityTest]
+    public IEnumerator MiniCup_TheDicePicksThree_AndATapSkipsTheRoll()
+    {
+        yield return OpenCupScreen();
+        var root = MenuRoot();
+
+        yield return Tap(root.Q("cupDice"), _touch++);
+        Assert.IsFalse(root.Q("cupStart").enabledSelf, "Start waits for the roll");
+
+        yield return Tap(root.Q("cupHint"), _touch++);
+        var picked = Numbered(root);
+        Assert.AreEqual(3, picked.Length);
+        CollectionAssert.AreEqual(new[] { "1", "2", "3" }, picked.Select(scene => Badge(root, scene)));
+        Assert.IsTrue(root.Q("cupStart").enabledSelf);
+    }
+
+    [UnityTest]
+    public IEnumerator MiniCup_PlaysTheChosenGamesInOrder_ThenThePodium()
+    {
+        var before = Localization.Current;
+        Localization.Current = Language.Vietnamese;
+        yield return OpenCupScreen();
+        var root = MenuRoot();
+
+        var chosen = new[] { "DaCau", "KeoCo", "NguoiGo" };
+        foreach (var scene in chosen)
+            yield return Tap(root.Q($"cupTile{scene}"), _touch++);
+        yield return Tap(root.Q("cupStart"), _touch++);
+
+        yield return WaitForScene("DaCau");
+        Assert.AreEqual("DaCau", SceneManager.GetActiveScene().name);
+        var game = GameManager.Instance;
+        Assert.AreEqual(SessionMode.Tournament, game.Mode);
+        Assert.AreEqual(CupKind.Mini, game.Cup);
+        CollectionAssert.AreEqual(chosen, game.TournamentScenes);
+
+        foreach (var next in new[] { "KeoCo", "NguoiGo", "Podium" })
+        {
+            game.Continue();
+            yield return WaitForScene(next);
+            Assert.AreEqual(next, SceneManager.GetActiveScene().name);
+        }
+
+        yield return new WaitForSecondsRealtime(0.3f);
+        var podium = (VisualElement)typeof(PodiumScreen).GetProperty("Root", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(Object.FindAnyObjectByType<PodiumScreen>());
+        Assert.AreEqual(DisplayStyle.Flex, podium.Q("podiumCup").resolvedStyle.display);
+        Assert.AreEqual("Cúp Nhỏ · 3 trò", podium.Q<Label>("podiumCupName").text);
+        Assert.AreEqual(3, podium.Q("podiumCupGames").childCount);
+        Localization.Current = before;
+    }
+
+    [UnityTest]
+    public IEnumerator GrandCup_NumbersAllSix_ThenPlaysEveryGameInOrder_AndShowsThePodium()
+    {
+        var before = Localization.Current;
+        Localization.Current = Language.Vietnamese;
+        yield return OpenCupScreen();
+        var root = MenuRoot();
+
+        yield return Tap(root.Q("cupGrand"), _touch++);
+        Assert.IsTrue(root.Q("cupGrand").ClassListContains("is-selected"));
+        CollectionAssert.AreEqual(CupPicker.StoryOrder, Numbered(root));
+        Assert.IsTrue(root.Q("cupStart").enabledSelf);
+
+        yield return Tap(root.Q("cupTileKeoCo"), _touch++);
+        CollectionAssert.AreEqual(CupPicker.StoryOrder, Numbered(root), "Grand Cup tiles can't be removed");
+
+        yield return Tap(root.Q("cupStart"), _touch++);
+
+        int stage = 1;
+        foreach (var scene in CupPicker.StoryOrder)
         {
             yield return WaitForScene(scene);
             Assert.AreEqual(scene, SceneManager.GetActiveScene().name);
@@ -374,19 +527,24 @@ public class MenuFlowTests : InputTestFixture
             var hud = HudOf(game);
             yield return EndRoundAfterCountdown(game);
 
+            Assert.AreEqual(DisplayStyle.Flex, hud.Q("resultStage").resolvedStyle.display);
+            Assert.AreEqual($"Trò {stage}/6", hud.Q<Label>("resultStage").text);
             Assert.AreEqual(DisplayStyle.Flex, hud.Q("continueButton").resolvedStyle.display);
             Assert.AreEqual(DisplayStyle.None, hud.Q("playAgainButton").resolvedStyle.display);
             var continueButton = hud.Q("continueButton");
             var underFinger = continueButton.panel.Pick(continueButton.worldBound.center);
             Assert.AreEqual(continueButton, underFinger, $"{underFinger?.name} {underFinger?.GetType().Name} {string.Join(".", underFinger?.GetClasses() ?? new string[0])} is over Continue");
-            yield return Tap(hud.Q("continueButton"), touch++);
+            yield return Tap(hud.Q("continueButton"), _touch++);
+            stage++;
         }
 
         yield return WaitForScene("Podium");
         Assert.AreEqual("Podium", SceneManager.GetActiveScene().name);
         Assert.AreEqual(SessionMode.Tournament, GameManager.Instance.Mode);
+        Assert.AreEqual(CupKind.Grand, GameManager.Instance.Cup);
         CollectionAssert.IsNotEmpty(GameManager.Instance.Scores);
         Assert.Greater(GameManager.Instance.Scores[0], 0, "Each game should have added tournament points");
+        Localization.Current = before;
     }
 
     // Scene loads take longer some runs, so wait for the scene itself rather than a fixed time.

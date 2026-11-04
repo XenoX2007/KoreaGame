@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-// Main menu: pick 2 or 4 players, then a mini game, the tournament, or online play (OnlinePanel).
+// Main menu: pick 2 or 4 players, then a mini game, the tournament (CupPanel), or online play (OnlinePanel).
 // Cards unlock on their own once their scene is added to the build.
 // GameManager lives on its own object: a duplicate destroys its whole GameObject on returning here.
 [RequireComponent(typeof(PanelRenderer))]
@@ -16,6 +16,7 @@ public class MainMenu : MonoBehaviour
     int _playerCount;
     bool _started;
     OnlinePanel _online;
+    CupPanel _cup;
 
     void Awake() => GetComponent<PanelRenderer>().RegisterUIReloadCallback(OnUiLoaded);
 
@@ -24,6 +25,8 @@ public class MainMenu : MonoBehaviour
         GetComponent<PanelRenderer>().UnregisterUIReloadCallback(OnUiLoaded);
         _online?.Dispose();
     }
+
+    void Update() => _cup?.Update();
 
     void Start()
     {
@@ -62,15 +65,17 @@ public class MainMenu : MonoBehaviour
         BindGameCard(_root.Q<Button>("cardLauTokbokki"), "LauTokbokki");
 
         var tournament = _root.Q<Button>("tournament");
-        tournament.SetEnabled(game.TournamentReady);
-        tournament.EnableInClassList(SoonClass, !game.TournamentReady);
-        tournament.clicked += () => GameManager.Instance.StartTournament(_playerCount);
+        bool cupReady = GameManager.CupReady(CupKind.Mini);
+        tournament.SetEnabled(cupReady);
+        tournament.EnableInClassList(SoonClass, !cupReady);
+        tournament.clicked += () => _cup.Open();
 
         BindLanguagePicker();
         Localization.Bind(_root);
         // After Bind, which would otherwise keep resetting the card's own changing labels.
         _online?.Dispose();
         _online = new OnlinePanel(_root, () => _playerCount);
+        _cup = new CupPanel(_root, () => _playerCount);
         SeatPanels.Reveal(_root.Q("menu"));
     }
 

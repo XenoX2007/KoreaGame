@@ -72,7 +72,7 @@
         <ui:Button name="tournament" class="btn btn--primary tournament">
           <ui:VisualElement class="tournament-cup" picking-mode="Ignore" />
           <ui:Label class="tournament__title" text="Giải đấu" picking-mode="Ignore" />
-          <ui:Label class="tournament__sub" text="Chơi cả 6 trò, tính điểm, lên bục vinh quang" picking-mode="Ignore" />
+          <ui:Label class="tournament__sub" text="Chọn 3 hoặc 6 trò, tính điểm, lên bục vinh quang" picking-mode="Ignore" />
           <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
         </ui:Button>
       </ui:VisualElement>
@@ -106,6 +106,41 @@
           </ui:VisualElement>
         </ui:VisualElement>
         <ui:Button name="onlineCloseButton" class="btn online-close" />
+      </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="cupPanel" class="cup-panel">
+      <ui:VisualElement name="cupSafeArea" class="safe-area" picking-mode="Ignore">
+        <ui:VisualElement class="cup-screen" picking-mode="Ignore">
+          <ui:VisualElement class="cup-top" picking-mode="Ignore">
+            <ui:Button name="cupBack" class="cup-back" />
+            <ui:Label class="cup-title" text="Chọn cúp" picking-mode="Ignore" />
+            <ui:Label name="cupPlayers" class="cup-players" picking-mode="Ignore" />
+          </ui:VisualElement>
+          <ui:VisualElement class="cup-body" picking-mode="Ignore">
+            <ui:VisualElement class="cup-cards" picking-mode="Ignore">
+              <ui:Button name="cupMini" class="cup-card cup-card--mini">
+                <ui:VisualElement class="cup-card-icon" picking-mode="Ignore" />
+                <ui:Label class="cup-card-name" text="Cúp Nhỏ" picking-mode="Ignore" />
+                <ui:Label class="cup-card-sub" text="3 trò · ~5 phút" picking-mode="Ignore" />
+              </ui:Button>
+              <ui:Button name="cupGrand" class="cup-card cup-card--grand">
+                <ui:VisualElement class="cup-card-icon" picking-mode="Ignore" />
+                <ui:Label class="cup-card-name" text="Cúp Lớn" picking-mode="Ignore" />
+                <ui:Label class="cup-card-sub" text="6 trò · ~10 phút" picking-mode="Ignore" />
+              </ui:Button>
+            </ui:VisualElement>
+            <ui:VisualElement name="cupGrid" class="cup-grid" picking-mode="Ignore" />
+            <ui:VisualElement class="cup-side" picking-mode="Ignore">
+              <ui:Button name="cupDice" class="cup-dice">
+                <ui:VisualElement name="cupDie" class="cup-die" picking-mode="Ignore" />
+              </ui:Button>
+              <ui:Label class="cup-dice-label" text="Tung xúc xắc" picking-mode="Ignore" />
+              <ui:VisualElement name="cupOrder" class="cup-order" picking-mode="Ignore" />
+              <ui:Button name="cupStart" class="btn cup-start" text="Bắt đầu" />
+            </ui:VisualElement>
+          </ui:VisualElement>
+          <ui:Label name="cupHint" class="cup-hint" picking-mode="Ignore" />
+        </ui:VisualElement>
       </ui:VisualElement>
     </ui:VisualElement>
   </ui:VisualElement>

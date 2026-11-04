@@ -23,6 +23,37 @@
     flex-shrink: 0;
 }
 
+/* Which cup was played and its games in order. Hidden when the podium is played directly. */
+.podium-cup {
+    display: none;
+    flex-direction: row;
+    flex-shrink: 0;
+    height: 64px;
+    margin-top: -12px;
+    align-items: center;
+    justify-content: center;
+}
+
+.podium-cup-name {
+    margin: 0 18px 0 0;
+    padding: 0;
+    font-size: 40px;
+    color: var(--rose-deep);
+    -unity-text-outline-width: 1px;
+    -unity-text-outline-color: var(--paper);
+}
+
+.podium-cup-games {
+    flex-direction: row;
+    align-items: center;
+}
+
+.podium-cup-games .card-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 4px;
+}
+
 .podium-stage {
     flex-direction: row;
     flex-grow: 1;

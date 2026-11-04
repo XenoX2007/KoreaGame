@@ -48,8 +48,24 @@ public static class Localization
         { "즉석떡볶이", new[] { "Lẩu Tokbokki", "즉석떡볶이" } },
         { "Sắp có", new[] { "준비 중", "Coming soon" } },
         { "Giải đấu", new[] { "토너먼트", "Tournament" } },
-        { "Chơi cả 6 trò, tính điểm, lên bục vinh quang", new[] { "여섯 가지 놀이로 점수를 모아 시상대에 올라요", "Play all 6 games, score points, reach the podium" } },
+        { "Chọn 3 hoặc 6 trò, tính điểm, lên bục vinh quang", new[] { "3게임이나 6게임을 골라 점수를 모아 시상대에 올라요", "Pick 3 or 6 games, score points, reach the podium" } },
         { "Ngôn ngữ", new[] { "언어", "Language" } },
+
+        // Cup screen
+        { "Chọn cúp", new[] { "컵 고르기", "Choose a cup" } },
+        { "Cúp Nhỏ", new[] { "작은 컵", "Mini Cup" } },
+        { "Cúp Lớn", new[] { "큰 컵", "Grand Cup" } },
+        { "3 trò · ~5 phút", new[] { "3게임 · 약 5분", "3 games · ~5 min" } },
+        { "6 trò · ~10 phút", new[] { "6게임 · 약 10분", "6 games · ~10 min" } },
+        { "Tung xúc xắc", new[] { "주사위 굴리기", "Roll the dice" } },
+        { "Chọn 3 trò hoặc tung xúc xắc", new[] { "3게임을 고르거나 주사위를 굴려요", "Pick 3 games or roll the dice" } },
+        { "Đã chọn đủ 3 trò", new[] { "3게임을 다 골랐어요", "3 games chosen" } },
+        { "Đã chọn 3 trò", new[] { "3게임 준비 완료", "3 games, ready to go" } },
+        { "Cả 6 trò theo thứ tự câu chuyện", new[] { "6게임 모두, 이야기 순서대로", "All 6 games, in story order" } },
+        { "Cả 6 trò, thứ tự đã xáo", new[] { "6게임 모두, 순서를 섞었어요", "All 6 games, shuffled" } },
+        { "{0} người", new[] { "{0}명", "{0} players" } },
+        { "{0} trò", new[] { "{0}게임", "{0} games" } },
+        { "Trò {0}/{1}", new[] { "{0}/{1} 게임", "Game {0}/{1}" } },
 
         // Online
         { "Chơi online", new[] { "온라인 플레이", "Play online" } },

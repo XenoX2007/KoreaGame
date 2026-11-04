@@ -155,58 +155,6 @@
     translate: 0 5px;
 }
 
-.card-icon {
-    width: 116px;
-    height: 116px;
-    flex-shrink: 0;
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-.card-icon--rope {
-    background-image: url("project://database/Assets/UI/Art/icon-rope.svg");
-}
-
-.card-icon--mugunghwa {
-    background-image: url("project://database/Assets/UI/Art/icon-mugunghwa.svg");
-}
-
-.card-icon--shuttlecock {
-    background-image: url("project://database/Assets/UI/Art/icon-shuttlecock.svg");
-}
-
-.card-icon--candy {
-    background-image: url("project://database/Assets/UI/Art/icon-candy.svg");
-}
-
-.card-icon--hotpot {
-    background-image: url("project://database/Assets/UI%20Assets/UI%20Button(2)/Hotpot/Full.png?fileID=-5063605252318705730&guid=29872523d8fb08c4eb5b200eb6f46aab&type=3#Full_0");
-}
-
-/* The two teams' marbles side by side, just touching. */
-.card-icon--marble {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-}
-
-.card-marble {
-    width: 86px;
-    height: 86px;
-    flex-shrink: 0;
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-.card-marble--vn {
-    margin-right: -14px;
-    translate: 0 -8px;
-    background-image: url("project://database/Assets/UI%20Assets/VN%20(Blue).png?fileID=-6213919199924930305&guid=57b60c2b2a3385b499ecd1327277332c&type=3#VN");
-}
-
-.card-marble--kr {
-    translate: 0 8px;
-    background-image: url("project://database/Assets/UI%20Assets/KR%20(Red).png?fileID=-7028137374346497254&guid=09fb73fde01c8f04ab5df83bc9112a81&type=3#KR");
-}
-
 /* Six cards share the row, so the longest names (English) must still fit on one line. */
 .card-name {
     font-size: 30px;
@@ -456,4 +404,381 @@
 
 .code-field:focus .unity-base-text-field__input {
     border-color: var(--jade);
+}
+
+/* Cup screen (docs/CupSelect.html): a full-screen panel over the menu. */
+.cup-panel {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: #F8D98A;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 220ms;
+}
+
+.cup-panel.is-in {
+    opacity: 1;
+}
+
+.cup-screen {
+    flex-grow: 1;
+    padding: 36px 60px 16px 60px;
+}
+
+.cup-top {
+    flex-direction: row;
+    flex-shrink: 0;
+    height: 120px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cup-back {
+    width: 112px;
+    height: 112px;
+    margin: 0;
+    padding: 30px 34px 30px 26px;
+    border-width: 6px;
+    border-radius: 56px;
+    border-color: var(--paper-edge);
+    background-color: #FFFBF2;
+    color: var(--ink);
+}
+
+.cup-back:active {
+    scale: 0.94 0.94;
+}
+
+.cup-back-arrow {
+    flex-grow: 1;
+}
+
+.cup-title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 72px;
+    -unity-text-align: middle-center;
+}
+
+.cup-players {
+    width: 232px;
+    height: 80px;
+    margin: 0;
+    padding: 0;
+    border-width: 4px;
+    border-radius: 40px;
+    border-color: var(--paper-edge);
+    background-color: #FFFBF2;
+    font-size: 38px;
+    -unity-text-align: middle-center;
+}
+
+.cup-body {
+    flex-direction: row;
+    flex-grow: 1;
+    margin-top: 24px;
+    min-height: 0;
+}
+
+.cup-cards {
+    width: 440px;
+    flex-shrink: 1;
+}
+
+.cup-card {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    border-width: 4px;
+    border-bottom-width: 24px;
+    border-radius: 44px;
+    border-color: var(--paper-edge);
+    background-color: #FFFBF2;
+    color: var(--ink);
+    transition-property: scale, background-color, border-color;
+    transition-duration: 90ms, 160ms, 160ms;
+}
+
+.cup-card--mini {
+    margin-bottom: 40px;
+}
+
+.cup-card:active {
+    scale: 0.97 0.97;
+}
+
+.cup-card.is-selected {
+    border-width: 10px;
+    border-bottom-width: 24px;
+    border-color: var(--gold-deep);
+    background-color: #FCEBC0;
+}
+
+.cup-card.is-soon {
+    opacity: 0.45;
+}
+
+.cup-card-icon {
+    width: 140px;
+    height: 120px;
+    flex-shrink: 0;
+    background-image: url("project://database/Assets/UI%20Assets/Trophy%20Cup%20%E2%80%93%20VN%20x%20KR.png?fileID=4842163755836273828&guid=957f1ecdb1c075141ba7636f88b479c4&type=3");
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.cup-card--grand .cup-card-icon {
+    height: 186px;
+}
+
+.cup-card-name {
+    margin: 10px 0 0 0;
+    padding: 0;
+    font-size: 52px;
+    -unity-text-align: middle-center;
+}
+
+.cup-card-sub {
+    margin: 0;
+    padding: 0;
+    font-size: 30px;
+    color: var(--wood);
+    -unity-text-align: middle-center;
+}
+
+/* 3 x 2 game tiles, built in code from CupPicker.AllGames. */
+.cup-grid {
+    width: 798px;
+    flex-shrink: 1;
+    margin-left: 40px;
+    justify-content: space-between;
+}
+
+.cup-grid-row {
+    flex-direction: row;
+    height: 47.5%;
+    justify-content: space-between;
+}
+
+.cup-tile {
+    width: 31.5%;
+    margin: 0;
+    padding: 24px 10px 12px 10px;
+    align-items: center;
+    border-width: 4px;
+    border-radius: 36px;
+    border-color: var(--paper-edge);
+    background-color: #FFFBF2;
+    color: var(--ink);
+    transition-property: scale;
+    transition-duration: 90ms;
+}
+
+.cup-tile:active {
+    scale: 0.97 0.97;
+}
+
+/* The thicker border is taken out of the padding, so the content doesn't move. */
+.cup-tile.is-picked {
+    padding: 20px 6px 8px 6px;
+    border-width: 8px;
+    border-color: var(--rose);
+}
+
+.cup-tile.is-soon {
+    opacity: 0.4;
+}
+
+.cup-tile .card-icon {
+    width: 150px;
+    height: 150px;
+    margin-bottom: 8px;
+}
+
+.cup-tile-name {
+    margin: 0;
+    padding: 0;
+    font-size: 36px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+.cup-tile-korean {
+    margin: 2px 0 0 0;
+    padding: 0;
+    font-size: 26px;
+    color: var(--wood);
+    white-space: normal;
+    -unity-text-align: middle-center;
+}
+
+/* The dice's hop ring, a little outside the tile. */
+.cup-tile-ring {
+    display: none;
+    position: absolute;
+    left: -18px;
+    right: -18px;
+    top: -18px;
+    bottom: -18px;
+    border-width: 10px;
+    border-radius: 50px;
+    border-color: var(--gold);
+}
+
+.cup-tile.is-hop .cup-tile-ring {
+    display: flex;
+}
+
+.cup-badge {
+    display: none;
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    width: 76px;
+    height: 76px;
+    margin: 0;
+    padding: 0;
+    border-width: 8px;
+    border-radius: 38px;
+    border-color: var(--paper);
+    background-color: var(--rose);
+    color: #FFFFFF;
+    font-size: 40px;
+    -unity-text-align: middle-center;
+    transition-property: scale;
+    transition-duration: 260ms;
+    transition-timing-function: ease-out-back;
+}
+
+.cup-badge.is-new {
+    scale: 0.3 0.3;
+}
+
+.cup-side {
+    flex-grow: 1;
+    margin-left: 40px;
+    align-items: center;
+}
+
+.cup-dice {
+    width: 288px;
+    height: 288px;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-width: 6px;
+    border-radius: 144px;
+    border-color: var(--paper-edge);
+    background-color: #FFFBF2;
+    transition-property: scale;
+    transition-duration: 90ms;
+}
+
+.cup-dice:active {
+    scale: 0.95 0.95;
+}
+
+.cup-die {
+    width: 160px;
+    height: 160px;
+    border-width: 10px;
+    border-radius: 32px;
+    border-color: var(--ink);
+    background-color: #FFFFFF;
+    rotate: -12deg;
+}
+
+/* Pip centers at 30, 70 and 110 px inside the die's border. */
+.cup-pip {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 14px;
+    background-color: var(--rose);
+}
+
+.cup-pip--0, .cup-pip--1, .cup-pip--2 { top: 16px; }
+.cup-pip--3, .cup-pip--4, .cup-pip--5 { top: 56px; }
+.cup-pip--6, .cup-pip--7, .cup-pip--8 { top: 96px; }
+.cup-pip--0, .cup-pip--3, .cup-pip--6 { left: 16px; }
+.cup-pip--1, .cup-pip--4, .cup-pip--7 { left: 56px; }
+.cup-pip--2, .cup-pip--5, .cup-pip--8 { left: 96px; }
+
+.cup-dice-label {
+    margin: 4px 0 0 0;
+    padding: 0;
+    font-size: 40px;
+    -unity-text-align: middle-center;
+}
+
+/* The play order: small icons with arrows between them. */
+/* Takes the room between the dice and Bắt đầu. */
+.cup-order {
+    flex-grow: 1;
+    flex-direction: row;
+    min-height: 80px;
+    align-items: center;
+    justify-content: center;
+}
+
+.cup-order .card-icon {
+    width: 68px;
+    height: 68px;
+}
+
+.cup-order-arrow {
+    width: 16px;
+    height: 26px;
+    margin: 0 8px;
+    color: var(--wood);
+}
+
+.cup-order--six .card-icon {
+    width: 52px;
+    height: 52px;
+}
+
+.cup-order--six .cup-order-arrow {
+    width: 12px;
+    height: 20px;
+    margin: 0 4px;
+}
+
+.cup-start {
+    width: 400px;
+    height: 156px;
+    padding: 0;
+    border-bottom-width: 24px;
+    border-radius: 52px;
+    background-color: var(--rose);
+    border-bottom-color: var(--rose-deep);
+    color: #FFFFFF;
+    font-size: 60px;
+}
+
+.cup-start:disabled {
+    opacity: 0.45;
+}
+
+.cup-hint {
+    flex-shrink: 0;
+    height: 64px;
+    margin: 0;
+    padding: 0;
+    font-size: 32px;
+    color: var(--wood);
+    -unity-text-align: middle-center;
 }

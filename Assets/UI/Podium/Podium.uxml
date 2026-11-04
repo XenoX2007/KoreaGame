@@ -6,6 +6,10 @@
     <ui:VisualElement name="safeArea" class="safe-area" picking-mode="Ignore">
       <ui:VisualElement name="podium" class="podium" picking-mode="Ignore">
         <ui:Label class="podium-title" text="Bục vinh quang" picking-mode="Ignore" />
+        <ui:VisualElement name="podiumCup" class="podium-cup" picking-mode="Ignore">
+          <ui:Label name="podiumCupName" class="podium-cup-name" picking-mode="Ignore" />
+          <ui:VisualElement name="podiumCupGames" class="podium-cup-games" picking-mode="Ignore" />
+        </ui:VisualElement>
         <ui:VisualElement class="podium-stage" picking-mode="Ignore">
           <ui:VisualElement name="column0" class="podium-column" picking-mode="Ignore">
             <ui:VisualElement class="podium-token" picking-mode="Ignore" />

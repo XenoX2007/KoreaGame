@@ -12,6 +12,8 @@ public class PodiumScreen : MonoBehaviour
     [SerializeField] int[] previewScores = { 6, 7, 3, 2 };
 
     PodiumCelebration _celebration;
+    // Read by MenuFlowTests.
+    VisualElement Root { get; set; }
 
     void Awake() => GetComponent<PanelRenderer>().RegisterUIReloadCallback(OnUiLoaded);
 
@@ -26,6 +28,7 @@ public class PodiumScreen : MonoBehaviour
 
     void OnUiLoaded(PanelRenderer panel, VisualElement root)
     {
+        Root = root;
         SeatPanels.FitSafeArea(root.Q("safeArea"));
         root.Q<Button>("backToMenu").clicked += BackToMenu;
 
@@ -64,9 +67,25 @@ public class PodiumScreen : MonoBehaviour
             column.Q<Label>(className: "podium-rank").text = ranks[player].ToString();
         }
 
+        if (game != null && game.Mode == SessionMode.Tournament && game.TournamentScenes.Count > 0) ShowCup(root, game);
+
         Localization.Bind(root);
         SeatPanels.Reveal(root.Q("podium"));
         _celebration = new PodiumCelebration(root.Q("rayLayer"), root.Q("confettiLayer"), everyone, champions);
+    }
+
+    // "Cúp Nhỏ · 3 trò" and the icons of the games that were played, in order.
+    static void ShowCup(VisualElement root, GameManager game)
+    {
+        root.Q("podiumCup").style.display = DisplayStyle.Flex;
+        var kind = game.Cup;
+        int count = game.TournamentScenes.Count;
+        Localization.Track(root.Q<Label>("podiumCupName"), () =>
+            $"{Localization.Text(kind == CupKind.Mini ? "Cúp Nhỏ" : "Cúp Lớn")} · {string.Format(Localization.Text("{0} trò"), count)}");
+
+        var games = root.Q("podiumCupGames");
+        foreach (var scene in game.TournamentScenes)
+            games.Add(CupPanel.Icon(CupPicker.Find(scene)));
     }
 
     // Player ids from first place to last; ties keep seat order.

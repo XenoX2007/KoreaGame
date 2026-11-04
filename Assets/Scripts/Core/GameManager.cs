@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -14,7 +16,6 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] string menuScene = "Menu";
     [SerializeField] string podiumScene = "Podium";
-    [SerializeField] string[] tournamentScenes = { "NguoiGo", "KeoCo", "DaCau", "BanBi", "TachKeo", "LauTokbokki" };
 
     public static GameManager Instance { get; private set; }
 
@@ -23,10 +24,14 @@ public class GameManager : MonoBehaviour
     public int[] Scores { get; private set; } = Array.Empty<int>();
     public int[] LastRanking { get; private set; } = Array.Empty<int>();
 
+    // The tournament's cup and its games in play order, chosen on the cup screen.
+    public CupKind Cup { get; private set; }
+    public IReadOnlyList<string> TournamentScenes { get; private set; } = Array.Empty<string>();
+    // Which of TournamentScenes is being played, from 0.
+    public int Stage { get; private set; }
+
     // Online, which player this phone is (each phone has one player).
     public int LocalPlayerId { get; private set; }
-
-    int _stage;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetStatics() => Instance = null;
@@ -52,10 +57,15 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(scene);
     }
 
-    public void StartTournament(int playerCount)
+    public void StartTournament(int playerCount, CupKind kind, IReadOnlyList<string> scenes)
     {
+        if (!CupPicker.IsValid(kind, scenes, Application.CanStreamedLevelBeLoaded))
+            throw new ArgumentException($"Not a playable {kind} cup: {string.Join(", ", scenes ?? Array.Empty<string>())}");
+
         BeginSession(SessionMode.Tournament, playerCount);
-        SceneManager.LoadScene(tournamentScenes[0]);
+        Cup = kind;
+        TournamentScenes = scenes.ToArray();
+        SceneManager.LoadScene(TournamentScenes[0]);
     }
 
     // Called by OnlineSession on every phone when the host starts the game.
@@ -76,8 +86,9 @@ public class GameManager : MonoBehaviour
             Scores[i] += PointsForRank(ranking[i]);
     }
 
-    // True once every tournament mini game scene is in the build.
-    public bool TournamentReady => Array.TrueForAll(tournamentScenes, Application.CanStreamedLevelBeLoaded);
+    // True once enough mini game scenes are in the build: 3 for the Mini Cup, all 6 for the Grand Cup.
+    public static bool CupReady(CupKind kind) =>
+        CupPicker.AllGames.Count(game => Application.CanStreamedLevelBeLoaded(game.Scene)) >= CupPicker.GameCount(kind);
 
     public void ReturnToMenu() => SceneManager.LoadScene(menuScene);
 
@@ -90,8 +101,8 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        _stage++;
-        SceneManager.LoadScene(_stage < tournamentScenes.Length ? tournamentScenes[_stage] : podiumScene);
+        Stage++;
+        SceneManager.LoadScene(Stage < TournamentScenes.Count ? TournamentScenes[Stage] : podiumScene);
     }
 
     void BeginSession(SessionMode mode, int playerCount)
@@ -101,7 +112,9 @@ public class GameManager : MonoBehaviour
         PlayerCount = playerCount;
         Scores = new int[playerCount];
         LastRanking = Array.Empty<int>();
-        _stage = 0;
+        Cup = CupKind.Mini;
+        TournamentScenes = Array.Empty<string>();
+        Stage = 0;
         LocalPlayerId = 0;
     }
 }
