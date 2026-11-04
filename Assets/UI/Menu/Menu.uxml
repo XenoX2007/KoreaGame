@@ -45,7 +45,10 @@
             <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
           </ui:Button>
           <ui:Button name="cardBanBi" class="btn game-card game-card--fourth">
-            <ui:VisualElement class="card-icon card-icon--marble" picking-mode="Ignore" />
+            <ui:VisualElement class="card-icon card-icon--marble" picking-mode="Ignore">
+              <ui:VisualElement class="card-marble card-marble--vn" picking-mode="Ignore" />
+              <ui:VisualElement class="card-marble card-marble--kr" picking-mode="Ignore" />
+            </ui:VisualElement>
             <ui:Label class="card-name" text="Bắn Bi" picking-mode="Ignore" />
             <ui:Label class="card-story" text="Búng bi ra khỏi vòng" picking-mode="Ignore" />
             <ui:Label class="card-korean" text="구슬치기" picking-mode="Ignore" />
@@ -58,11 +61,18 @@
             <ui:Label class="card-korean" text="뽑기" picking-mode="Ignore" />
             <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
           </ui:Button>
+          <ui:Button name="cardLauTokbokki" class="btn game-card game-card--sixth">
+            <ui:VisualElement class="card-icon card-icon--hotpot" picking-mode="Ignore" />
+            <ui:Label class="card-name" text="Lẩu Tokbokki" picking-mode="Ignore" />
+            <ui:Label class="card-story" text="Gom đủ món, nấu nồi lẩu hoàn hảo" picking-mode="Ignore" />
+            <ui:Label class="card-korean" text="즉석떡볶이" picking-mode="Ignore" />
+            <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
+          </ui:Button>
         </ui:VisualElement>
         <ui:Button name="tournament" class="btn btn--primary tournament">
           <ui:VisualElement class="tournament-cup" picking-mode="Ignore" />
           <ui:Label class="tournament__title" text="Giải đấu" picking-mode="Ignore" />
-          <ui:Label class="tournament__sub" text="Chơi cả 5 trò, tính điểm, lên bục vinh quang" picking-mode="Ignore" />
+          <ui:Label class="tournament__sub" text="Chơi cả 6 trò, tính điểm, lên bục vinh quang" picking-mode="Ignore" />
           <ui:Label class="card-badge" text="Sắp có" picking-mode="Ignore" />
         </ui:Button>
       </ui:VisualElement>

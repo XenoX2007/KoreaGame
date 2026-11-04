@@ -24,36 +24,16 @@
     position: absolute;
     left: 0;
     top: 0;
-    border-width: 3px;
-    border-color: var(--ink);
+    -unity-background-scale-mode: scale-to-fit;
 }
 
-/* The white rim inside the dark outline. */
-.marble-rim {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    border-width: 4px;
-    border-color: #FFFFFF;
+/* Each team's marble carries its flag: Vietnam blue with the star, Korea red with the taegeuk. */
+.marble--vn {
+    background-image: url("project://database/Assets/UI%20Assets/VN%20(Blue).png?fileID=-6213919199924930305&guid=57b60c2b2a3385b499ecd1327277332c&type=3#VN");
 }
 
-.marble--red {
-    background-color: #E5383B;
-}
-
-.marble--blue {
-    background-color: #2B6CF6;
-}
-
-.marble-shine {
-    position: absolute;
-    left: 17%;
-    top: 14%;
-    width: 26%;
-    height: 26%;
-    background-color: rgba(255, 255, 255, 0.8);
+.marble--kr {
+    background-image: url("project://database/Assets/UI%20Assets/KR%20(Red).png?fileID=-7028137374346497254&guid=09fb73fde01c8f04ab5df83bc9112a81&type=3#KR");
 }
 
 .marble-shadow {
@@ -125,7 +105,7 @@
     transition-duration: 90ms, 200ms;
 }
 
-.shoot-button--blue {
+.shoot-button--vn {
     background-color: #2B6CF6;
     border-bottom-color: #1A47A8;
 }
@@ -186,11 +166,11 @@
 }
 
 .team-count--vn {
-    background-color: #E5383B;
+    background-color: #2B6CF6;
 }
 
 .team-count--kr {
-    background-color: #2B6CF6;
+    background-color: #E5383B;
 }
 
 /* Under the active team's counter, placed by BanBiGame (left/top = its top center).

@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Menu.unity
     guid: d9821887c7d966446a70ac25c6cc523c
   - enabled: 1
+    path: Assets/Scenes/LauTokbokki.unity
+    guid: 3d17e72729c58524583c93d08c379d3e
+  - enabled: 1
     path: Assets/Scenes/TachKeo.unity
     guid: 1b028d41cbdb1624c9487f093d704775
   - enabled: 1

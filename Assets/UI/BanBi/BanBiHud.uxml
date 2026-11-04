@@ -13,10 +13,7 @@
         <ui:VisualElement class="hand-sprite hand-shadow" picking-mode="Ignore" />
         <ui:VisualElement class="hand-sprite" picking-mode="Ignore" />
       </ui:VisualElement>
-      <ui:VisualElement name="heldMarble" class="marble" picking-mode="Ignore">
-        <ui:VisualElement class="marble-rim" picking-mode="Ignore" />
-        <ui:VisualElement class="marble-shine" picking-mode="Ignore" />
-      </ui:VisualElement>
+      <ui:VisualElement name="heldMarble" class="marble" picking-mode="Ignore" />
       <ui:VisualElement name="shootButton" class="shoot-button" picking-mode="Ignore">
         <ui:VisualElement class="shoot-button__icon" picking-mode="Ignore" />
         <ui:Label class="shoot-button__label" text="Bắn!" picking-mode="Ignore" />

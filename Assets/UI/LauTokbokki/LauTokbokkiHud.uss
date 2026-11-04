@@ -1,0 +1,212 @@
+/* Everything on the floor is sized and placed by LauTokbokkiGame from the stage height (1 arena unit =
+   stage height / 9); this file keeps only the look. The art is set from code (LauTokbokkiArt). */
+
+/* A warm tiled restaurant floor; the tile lines are drawn by LauTokbokkiGame. */
+.restaurant-floor {
+    background-image: none;
+    background-color: #EFE2C6;
+}
+
+.piece {
+    position: absolute;
+    left: 0;
+    top: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+/* The table art includes a soft shadow below, so the sprite sits a touch lower than its circle. */
+.table {
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+.plate.is-empty,
+.pot-item.is-hidden,
+.floor-item.is-hidden {
+    display: none;
+}
+
+.floor-item.is-fading {
+    opacity: 0.5;
+}
+
+.pot-item.is-spoiled {
+    -unity-background-image-tint-color: #8C8C8C;
+}
+
+/* The cross on a spoiled item: two bars. */
+.spoiled-bar {
+    position: absolute;
+    left: 45%;
+    top: -5%;
+    width: 10%;
+    height: 110%;
+    background-color: #FFFFFF;
+    border-radius: 3px;
+    display: none;
+}
+
+.is-spoiled > .spoiled-bar {
+    display: flex;
+}
+
+.perfect-ring {
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-color: var(--gold);
+    display: none;
+}
+
+.is-perfect > .perfect-ring {
+    display: flex;
+}
+
+/* A player: a ring in their color under the top-down sprite. */
+.player-ring {
+    position: absolute;
+    left: 0;
+    top: 0;
+    border-color: var(--player);
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+.player-sprite {
+    position: absolute;
+    left: 0;
+    top: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.carried {
+    position: absolute;
+    left: 0;
+    top: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.stun-star {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
+    rotate: 45deg;
+    background-color: var(--gold);
+    border-width: 2px;
+    border-color: var(--gold-deep);
+    display: none;
+}
+
+.is-stunned .stun-star {
+    display: flex;
+}
+
+/* The recipe card, built at its 1080-tall size and scaled with the stage. */
+.recipe-card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 120px;
+    height: 176px;
+    padding: 6px;
+    border-radius: 14px;
+    border-width: 4px;
+    border-color: var(--player);
+    background-color: #FFFBF2;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+
+.recipe-slot {
+    width: 46px;
+    height: 46px;
+    margin: 2px;
+    opacity: 0.45;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.recipe-slot.is-filled {
+    opacity: 1;
+}
+
+.recipe-check {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    border-width: 2px;
+    border-color: #FFFBF2;
+    background-color: var(--player);
+    display: none;
+}
+
+.is-filled > .recipe-check {
+    display: flex;
+}
+
+.recipe-count {
+    position: absolute;
+    right: 8px;
+    bottom: 2px;
+    margin: 0;
+    padding: 0;
+    font-size: 26px;
+    color: var(--ink);
+}
+
+.pot-feedback {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 260px;
+    height: 60px;
+    margin: -30px 0 0 -130px;
+    padding: 0;
+    font-size: 40px;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: var(--paper);
+    opacity: 0;
+}
+
+.pot-feedback.feedback--miss {
+    color: var(--rose-deep);
+}
+
+/* The countdown sits over the middle of the table. */
+.lau-tokbokki .center-message {
+    top: 50%;
+    margin-top: -100px;
+    font-size: 84px;
+}
+
+.hint {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    margin: 6px 0 0 0;
+    padding: 0;
+    font-size: 34px;
+    -unity-text-align: middle-center;
+    -unity-text-outline-width: 2px;
+    -unity-text-outline-color: var(--paper);
+    transition-property: opacity;
+    transition-duration: 300ms;
+}
+
+.hint.is-hidden {
+    opacity: 0;
+}
+
+.spoiled-bar--a {
+    rotate: 45deg;
+}
+
+.spoiled-bar--b {
+    rotate: -45deg;
+}

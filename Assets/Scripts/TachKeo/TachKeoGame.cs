@@ -224,6 +224,7 @@ public class TachKeoGame : PanelMiniGame
         for (int id = 0; id < PlayerCount; id++)
         {
             if (Seats[id] == null) continue;
+            Seats[id].Root.AddToClassList("seat--joystick");
             _knobs[id] = new VisualElement { pickingMode = PickingMode.Ignore };
             _knobs[id].AddToClassList("joystick-knob");
             _statuses[id] = new Label { pickingMode = PickingMode.Ignore };

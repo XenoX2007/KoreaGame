@@ -133,6 +133,11 @@
     transition-delay: 420ms, 420ms, 0s;
 }
 
+.game-card--sixth {
+    border-top-color: #C8321F;
+    transition-delay: 510ms, 510ms, 0s;
+}
+
 .is-in .game-card {
     opacity: 1;
     translate: 0 0;
@@ -173,20 +178,38 @@
     background-image: url("project://database/Assets/UI/Art/icon-candy.svg");
 }
 
-/* Placeholder marble until Bắn Bi has its icon art. */
-.card-icon--marble {
-    width: 96px;
-    height: 96px;
-    margin: 18px 0;
-    border-radius: 48px;
-    border-width: 6px;
-    border-color: #2D6FD1;
-    background-color: var(--p2);
+.card-icon--hotpot {
+    background-image: url("project://database/Assets/UI%20Assets/UI%20Button(2)/Hotpot/Full.png?fileID=-5063605252318705730&guid=29872523d8fb08c4eb5b200eb6f46aab&type=3#Full_0");
 }
 
-/* Five cards share the row, so the longest names (English) must still fit on one line. */
+/* The two teams' marbles side by side, just touching. */
+.card-icon--marble {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-marble {
+    width: 86px;
+    height: 86px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.card-marble--vn {
+    margin-right: -14px;
+    translate: 0 -8px;
+    background-image: url("project://database/Assets/UI%20Assets/VN%20(Blue).png?fileID=-6213919199924930305&guid=57b60c2b2a3385b499ecd1327277332c&type=3#VN");
+}
+
+.card-marble--kr {
+    translate: 0 8px;
+    background-image: url("project://database/Assets/UI%20Assets/KR%20(Red).png?fileID=-7028137374346497254&guid=09fb73fde01c8f04ab5df83bc9112a81&type=3#KR");
+}
+
+/* Six cards share the row, so the longest names (English) must still fit on one line. */
 .card-name {
-    font-size: 40px;
+    font-size: 30px;
     height: 60px;
     margin: 2px 0 0 0;
     padding: 0;
@@ -195,7 +218,7 @@
 }
 
 .card-story {
-    font-size: 22px;
+    font-size: 19px;
     height: 58px;
     margin: 2px 0 0 0;
     padding: 0;
@@ -205,7 +228,7 @@
 }
 
 .card-korean {
-    font-size: 28px;
+    font-size: 24px;
     height: 40px;
     margin: 4px 0 0 0;
     padding: 0;

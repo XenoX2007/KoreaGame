@@ -92,7 +92,7 @@ public class BanBiSettings
 // One marble in the circle, in zone units (center at the origin, y toward the top of the screen).
 public class MarbleState
 {
-    public readonly int Team;  // 0 red / Vietnam, 1 blue / Korea
+    public readonly int Team;  // 0 Vietnam (blue marbles), 1 Korea (red marbles)
     public int ShotBy = -1;    // the player who shot it, or -1 for a start marble
     public Vector2 Position;
     public Vector2 Velocity;
@@ -524,11 +524,11 @@ public class BanBiModel
         }
         foreach (var marble in _marbles) marble.Moved = false;
 
-        int red = TeamCount(0);
-        int blue = TeamCount(1);
-        if (red == 0 || blue == 0)
+        int vn = TeamCount(0);
+        int kr = TeamCount(1);
+        if (vn == 0 || kr == 0)
         {
-            Finish(red > 0 ? 0 : blue > 0 ? 1 : -1);
+            Finish(vn > 0 ? 0 : kr > 0 ? 1 : -1);
             return;
         }
 
@@ -560,11 +560,11 @@ public class BanBiModel
     // More marbles in the circle wins; on equal counts, the team with the marble closest to the center.
     void FinishOnCount()
     {
-        int red = TeamCount(0);
-        int blue = TeamCount(1);
-        if (red != blue)
+        int vn = TeamCount(0);
+        int kr = TeamCount(1);
+        if (vn != kr)
         {
-            Finish(red > blue ? 0 : 1);
+            Finish(vn > kr ? 0 : 1);
             return;
         }
 

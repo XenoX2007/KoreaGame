@@ -186,6 +186,39 @@ public class MenuFlowTests : InputTestFixture
     }
 
     [UnityTest]
+    public IEnumerator TappingTheLauTokbokkiCard_StartsLauTokbokki_WithAllItsArt()
+    {
+        yield return LoadMenu();
+        var root = MenuRoot();
+
+        yield return Tap(root.Q("twoPlayers"), 1);
+        yield return Tap(root.Q("cardLauTokbokki"), 2);
+        yield return WaitForScene("LauTokbokki");
+
+        Assert.AreEqual("LauTokbokki", SceneManager.GetActiveScene().name);
+        var game = Object.FindAnyObjectByType<LauTokbokkiGame>();
+        Assert.AreEqual(2, game.PlayerCount);
+
+        var art = game.Art;
+        Assert.AreEqual(6, art.ingredients.Length);
+        foreach (var sprite in art.All)
+        {
+            Assert.IsNotNull(sprite, "Every piece of art is assigned");
+            Assert.IsNotNull(sprite.texture, $"{sprite.name} has its texture");
+        }
+        Assert.AreEqual("VN_5", art.vnPlayer.name);
+        Assert.AreEqual("KR_4", art.krPlayer.name);
+
+        // The art is on screen: the table, a player and their pot.
+        var hud = HudOf(game);
+        Assert.AreEqual(art.table, hud.Q(className: "table").resolvedStyle.backgroundImage.sprite);
+        Assert.AreEqual(art.flags, hud.Q(className: "flags").resolvedStyle.backgroundImage.sprite);
+        Assert.IsTrue(hud.Query(className: "player-sprite").ToList().Any(e => e.resolvedStyle.backgroundImage.sprite == art.vnPlayer));
+        Assert.IsTrue(hud.Query(className: "player-sprite").ToList().Any(e => e.resolvedStyle.backgroundImage.sprite == art.krPlayer));
+        while (!game.IsRunning) yield return null;
+    }
+
+    [UnityTest]
     public IEnumerator ChoosingALanguage_ChangesTheWholeMenu()
     {
         var before = Localization.Current;
@@ -332,7 +365,7 @@ public class MenuFlowTests : InputTestFixture
         yield return Tap(root.Q("tournament"), 1);
 
         int touch = 2;
-        foreach (var scene in new[] { "NguoiGo", "KeoCo", "DaCau", "BanBi", "TachKeo" })
+        foreach (var scene in new[] { "NguoiGo", "KeoCo", "DaCau", "BanBi", "TachKeo", "LauTokbokki" })
         {
             yield return WaitForScene(scene);
             Assert.AreEqual(scene, SceneManager.GetActiveScene().name);

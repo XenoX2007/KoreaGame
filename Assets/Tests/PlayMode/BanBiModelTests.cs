@@ -547,13 +547,13 @@ public class BanBiModelTests
     }
 
     // Each team's marbles go in a row from the center, at these distances.
-    static void Line(BanBiModel model, float redClosest, float blueClosest)
+    static void Line(BanBiModel model, float vnClosest, float krClosest)
     {
-        int red = 0, blue = 0;
+        int vn = 0, kr = 0;
         foreach (var marble in model.Marbles)
             marble.Position = marble.Team == 0
-                ? new Vector2(redClosest + 0.2f * red++, 0f)
-                : new Vector2(-(blueClosest + 0.2f * blue++), 0f);
+                ? new Vector2(vnClosest + 0.2f * vn++, 0f)
+                : new Vector2(-(krClosest + 0.2f * kr++), 0f);
     }
 
     [Test]

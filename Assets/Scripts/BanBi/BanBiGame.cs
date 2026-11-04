@@ -7,8 +7,9 @@ using UnityEngine.UIElements;
 // Bắn Bi / Guseul-chigi, 1v1 or 2v2, top-down team marbles in a big circle. Roll dice for the
 // order on your own seat, then on your turn your team's hand slides along under the circle: press
 // the shared shoot button to stop it, hold to pull back, release to shoot straight up.
-// Red (left) is Vietnam, blue (right) is Korea. The hands are the arm slices of VN.png / KR.png;
-// the circle and marbles are plain shapes. Everything on the field is sized from the stage height.
+// Vietnam (left) plays blue, Korea (right) red, as the marble art (VN (Blue).png, KR (Red).png) shows.
+// The hands are the arm slices of VN.png / KR.png and the circle is a plain shape. Everything on
+// the field is sized from the stage height.
 public class BanBiGame : PanelMiniGame
 {
     const float CountdownSeconds = 3f;
@@ -388,8 +389,8 @@ public class BanBiGame : PanelMiniGame
         float size = MarbleSize;
         SizeMarble(_heldMarble, size);
         _heldMarble.style.translate = new Translate(marble.x - size / 2f, marble.y - size / 2f);
-        _heldMarble.EnableInClassList("marble--red", team == 0);
-        _heldMarble.EnableInClassList("marble--blue", team == 1);
+        _heldMarble.EnableInClassList("marble--vn", team == 0);
+        _heldMarble.EnableInClassList("marble--kr", team == 1);
     }
 
     // Dots straight up from the held marble: to the far edge while aiming; while charging, as far
@@ -433,7 +434,7 @@ public class BanBiGame : PanelMiniGame
         _shootButton.style.translate = new Translate(center.x - size / 2f, center.y - size / 2f);
 
         int team = _model.ActiveTeam;
-        _shootButton.EnableInClassList("shoot-button--blue", team == 1);
+        _shootButton.EnableInClassList("shoot-button--vn", team == 0);
         _shootButton.EnableInClassList("is-pressed", _shootHeld);
         _shootButton.EnableInClassList("is-disabled", waiting);
         _shootName.text = $"P{_model.ActivePlayer + 1}";
@@ -463,9 +464,7 @@ public class BanBiGame : PanelMiniGame
         for (int i = _marbles.Count; i < _model.Marbles.Count; i++)
         {
             var shadow = Piece("marble-shadow");
-            var marble = Piece("marble", _model.Marbles[i].Team == 0 ? "marble--red" : "marble--blue");
-            marble.Add(Piece("marble-rim"));
-            marble.Add(Piece("marble-shine"));
+            var marble = Piece("marble", _model.Marbles[i].Team == 0 ? "marble--vn" : "marble--kr");
             _shadows.Add(shadow);
             _marbles.Add(marble);
             _outAt.Add(double.PositiveInfinity);

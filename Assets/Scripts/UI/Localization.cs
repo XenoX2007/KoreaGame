@@ -43,9 +43,12 @@ public static class Localization
         { "Tách Kẹo", new[] { "뽑기", "Candy Cut" } },
         { "Tách hình kẹo mà không làm vỡ", new[] { "깨지지 않게 모양을 떼어내요", "Cut the shape out without breaking it" } },
         { "뽑기", new[] { "Tách Kẹo", "뽑기" } },
+        { "Lẩu Tokbokki", new[] { "즉석떡볶이", "Tteokbokki Hotpot" } },
+        { "Gom đủ món, nấu nồi lẩu hoàn hảo", new[] { "재료를 모아 완벽한 전골을 끓여요", "Gather it all, cook the perfect hotpot" } },
+        { "즉석떡볶이", new[] { "Lẩu Tokbokki", "즉석떡볶이" } },
         { "Sắp có", new[] { "준비 중", "Coming soon" } },
         { "Giải đấu", new[] { "토너먼트", "Tournament" } },
-        { "Chơi cả 5 trò, tính điểm, lên bục vinh quang", new[] { "다섯 가지 놀이로 점수를 모아 시상대에 올라요", "Play all 5 games, score points, reach the podium" } },
+        { "Chơi cả 6 trò, tính điểm, lên bục vinh quang", new[] { "여섯 가지 놀이로 점수를 모아 시상대에 올라요", "Play all 6 games, score points, reach the podium" } },
         { "Ngôn ngữ", new[] { "언어", "Language" } },
 
         // Online
@@ -121,6 +124,19 @@ public static class Localization
         { "Hình vuông", new[] { "네모", "Square" } },
         { "Hình bầu dục", new[] { "타원", "Oval" } },
         { "Ngôi sao", new[] { "별", "Star" } },
+
+        // Lẩu Tokbokki
+        { "Nấu lẩu thôi!", new[] { "요리 시작!", "Let's cook!" } },
+        { "Lẩu hoàn hảo!", new[] { "완벽한 전골!", "Perfect hotpot!" } },
+        { "Bị trộm!", new[] { "도둑맞았어요!", "Stolen!" } },
+        { "Hỏng!", new[] { "망했어요!", "Spoiled!" } },
+        { "Bánh gạo", new[] { "떡", "Rice cake" } },
+        { "Chả cá", new[] { "어묵", "Fish cake" } },
+        { "Kim chi", new[] { "김치", "Kimchi" } },
+        { "Nấm kim châm", new[] { "팽이버섯", "Enoki" } },
+        { "Rau", new[] { "채소", "Greens" } },
+        { "Trứng", new[] { "계란", "Egg" } },
+        { "Chạm cần để trộm hoặc bỏ vào nồi", new[] { "스틱을 톡 눌러 훔치거나 넣어요", "Tap the stick to steal or drop" } },
     };
 
     static Language? _current;

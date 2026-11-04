@@ -29,7 +29,17 @@ public static class ProjectSetup
     const string BanBiUxmlPath = "Assets/UI/BanBi/BanBiHud.uxml";
     const string TachKeoScenePath = "Assets/Scenes/TachKeo.unity";
     const string TachKeoUxmlPath = "Assets/UI/TachKeo/TachKeoHud.uxml";
+    const string LauTokbokkiScenePath = "Assets/Scenes/LauTokbokki.unity";
+    const string LauTokbokkiUxmlPath = "Assets/UI/LauTokbokki/LauTokbokkiHud.uxml";
+    const string UiArt = "Assets/UI Assets/";
+    const string HotpotArt = UiArt + "UI Button(2)/";
     const string PodiumUxmlPath = "Assets/UI/Podium/Podium.uxml";
+
+    // Indexed by Ingredient: Tteok, Eomuk, Kimchi, Enoki, Greens, Egg.
+    static readonly string[] IngredientArt =
+    {
+        "Bánh gạo (Tteok)", "Chả cá (Eomuk)", "Kim chi", "Nấm kim châm (Enoki)", "Rau (Greens)", "Trứng (Egg)",
+    };
 
     // Phone lies flat on a table: lock landscape so a bump never flips the screen,
     // and keep system edge gestures from stealing taps on the corner buttons.
@@ -82,6 +92,7 @@ public static class ProjectSetup
         CreateDaCauScene();
         CreateBanBiScene();
         CreateTachKeoScene();
+        CreateLauTokbokkiScene();
     }
 
     [MenuItem("KoreaGame/Create Da Cau Scene")]
@@ -103,6 +114,34 @@ public static class ProjectSetup
     {
         CreateGameScene<TachKeoGame>(TachKeoScenePath, TachKeoUxmlPath, AssignSeatTemplate);
         CreateMenuScene();
+    }
+
+    [MenuItem("KoreaGame/Create Lau Tokbokki Scene")]
+    public static void CreateLauTokbokkiScene()
+    {
+        CreateGameScene<LauTokbokkiGame>(LauTokbokkiScenePath, LauTokbokkiUxmlPath, game =>
+        {
+            AssignSeatTemplate(game);
+            var art = game.Art;
+            art.table = LoadSprite(UiArt + "Table.png");
+            art.flags = LoadSprite(HotpotArt + "Centerpiece/VN x KR Flags.png");
+            art.potEmpty = LoadSprite(HotpotArt + "Hotpot/Empty.png");
+            art.potFull = LoadSprite(HotpotArt + "Hotpot/Full.png");
+            art.vnPlayer = LoadSprite(UiArt + "VN.png", "VN_5");
+            art.krPlayer = LoadSprite(UiArt + "KR.png", "KR_4");
+            art.ingredients = IngredientArt.Select(name => LoadSprite($"{HotpotArt}Ingredient/{name}.png")).ToArray();
+            EditorUtility.SetDirty(game);
+        });
+        CreateMenuScene();
+    }
+
+    // The sprite in an imported image: the named slice, or its only one.
+    static Sprite LoadSprite(string path, string slice = null)
+    {
+        var sprites = AssetDatabase.LoadAllAssetsAtPath(path).OfType<Sprite>().ToArray();
+        var sprite = slice == null ? sprites.FirstOrDefault() : sprites.FirstOrDefault(s => s.name == slice);
+        if (sprite == null) Debug.LogError($"KoreaGame: no sprite {slice ?? ""} in {path}");
+        return sprite;
     }
 
     static void CreateMenuScene() =>
