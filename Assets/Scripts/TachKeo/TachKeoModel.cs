@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 [Serializable]
@@ -105,6 +106,7 @@ public sealed class TachKeoModel
         public double BrokeAt;
         public double FinishTime = double.NaN;
         public int Breaks;
+        public bool Simulated = true;
     }
 
     public TachKeoModel(TachKeoSettings settings, int playerCount, int seed)
@@ -161,6 +163,39 @@ public sealed class TachKeoModel
         }
     }
 
+    // Online each phone cuts only its own player's candy; the others arrive with ReadPlayer and are
+    // left alone here, so they don't break or restart twice.
+    public void SetSimulated(int player, bool simulated) => _players[player].Simulated = simulated;
+
+    public void WritePlayer(int player, BinaryWriter writer)
+    {
+        var p = _players[player];
+        writer.Write((byte)p.State);
+        writer.Write(p.Needle);
+        writer.Write(p.Stick);
+        writer.Write(p.Crack);
+        writer.Write(p.BrokeAt);
+        writer.Write(p.FinishTime);
+        writer.Write(p.Breaks);
+        writer.WriteBits(p.Carved);
+    }
+
+    public void ReadPlayer(int player, BinaryReader reader)
+    {
+        var p = _players[player];
+        p.State = (CutState)reader.ReadByte();
+        p.Needle = reader.ReadVector2();
+        p.Stick = reader.ReadVector2();
+        p.Crack = reader.ReadSingle();
+        p.BrokeAt = reader.ReadDouble();
+        p.FinishTime = reader.ReadDouble();
+        p.Breaks = reader.ReadInt32();
+        reader.ReadBits(p.Carved);
+        p.CarvedCount = 0;
+        foreach (bool carved in p.Carved)
+            if (carved) p.CarvedCount++;
+    }
+
     public void Start(double time)
     {
         if (!double.IsNaN(_startTime)) return;
@@ -194,6 +229,7 @@ public sealed class TachKeoModel
         for (int id = 0; id < _players.Length; id++)
         {
             var p = _players[id];
+            if (!p.Simulated) continue;
             if (p.State == CutState.Broken && now - p.BrokeAt >= _settings.restartDelay - 1e-9)
             {
                 FreshCandy(p);

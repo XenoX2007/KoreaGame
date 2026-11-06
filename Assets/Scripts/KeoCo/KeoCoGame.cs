@@ -56,7 +56,7 @@ public class KeoCoGame : PanelMiniGame
         BuildPullers();
     }
 
-    protected override void OnRoundScheduled(double countdownStart) =>
+    protected override void OnRoundScheduled(double countdownStart, int seed) =>
         _model = new KeoCoModel(PlayerCount, settings, countdownStart + CountdownSeconds);
 
     protected override void ListenOnline()

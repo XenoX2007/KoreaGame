@@ -99,6 +99,7 @@
           <ui:Label class="online-code-label" text="Mã phòng" picking-mode="Ignore" />
           <ui:Label name="roomCode" class="online-code" picking-mode="Ignore" />
           <ui:VisualElement name="onlineSlots" class="online-slots" picking-mode="Ignore" />
+          <ui:VisualElement name="onlineGames" class="online-games" picking-mode="Ignore" />
           <ui:VisualElement class="result-actions" picking-mode="Ignore">
             <ui:Button name="shareButton" class="btn btn--accent online-action" text="Chia sẻ" />
             <ui:Button name="copyButton" class="btn btn--accent online-action" text="Sao chép" />

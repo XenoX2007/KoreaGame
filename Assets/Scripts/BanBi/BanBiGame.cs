@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -10,9 +11,15 @@ using UnityEngine.UIElements;
 // Vietnam (left) plays blue, Korea (right) red, as the marble art (VN (Blue).png, KR (Red).png) shows.
 // The hands are the arm slices of VN.png / KR.png and the circle is a plain shape. Everything on
 // the field is sized from the stage height.
+// Online the host runs the rules, judging presses by when they happened; only the active player's phone
+// shows the shoot button. The other phones copy the host's state as it arrives and run the marbles on
+// from it, so they roll smoothly, while the host's events drive the messages.
 public class BanBiGame : PanelMiniGame
 {
     const float CountdownSeconds = 3f;
+    const string StateMessage = "banbi.state"; // host -> clients: the model's state
+    const string EventMessage = "banbi.event"; // host -> clients: a model event
+    const string EndMessage = "banbi.end";     // host -> clients: the final state
     const float ZoneRadiusOfHeight = 0.435f; // the circle's radius, as a fraction of the stage height
     const float ZoneCenterOfHeight = 0.45f;
     const float SeatGap = 36f;               // panel units between the circle's edge and a seat disc
@@ -77,7 +84,6 @@ public class BanBiGame : PanelMiniGame
     string _message;
     double _messageAt = double.NegativeInfinity;
     double _flickAt = double.NegativeInfinity;
-    bool _shootHeld;
     bool _shootZoneRegistered;
 
     // Field geometry in panel units, updated every frame from the stage size.
@@ -124,9 +130,22 @@ public class BanBiGame : PanelMiniGame
     {
         base.Setup(playerCount);
 
-        _startTime = Now + CountdownSeconds;
-        _model = new BanBiModel(settings, playerCount, Environment.TickCount);
-        _model.Event += _events.Add;
+        // Online the round waits for the host's start time and seed.
+        _model = null;
+        _marbleLayer.Clear();
+        _marbles.Clear();
+        _shadows.Clear();
+        _outAt.Clear();
+        if (!IsOnline) StartRound(Now + CountdownSeconds, Environment.TickCount);
+    }
+
+    protected override void OnRoundScheduled(double countdownStart, int seed) => StartRound(countdownStart + CountdownSeconds, seed);
+
+    void StartRound(double startTime, int seed)
+    {
+        _startTime = startTime;
+        _model = new BanBiModel(settings, PlayerCount, seed);
+        if (!IsOnlineClient) _model.Event += OnModelEvent;
         _events.Clear();
         _hadATurn.Clear();
         _message = null;
@@ -140,23 +159,89 @@ public class BanBiGame : PanelMiniGame
         BuildDice();
     }
 
+    protected override void ListenOnline()
+    {
+        if (IsOnlineHost) return;
+
+        Listen(StateMessage, (sender, reader) => ReadState(reader));
+        Listen(EventMessage, (sender, reader) =>
+        {
+            reader.ReadValueSafe(out int kind);
+            reader.ReadValueSafe(out int player);
+            reader.ReadValueSafe(out int other);
+            reader.ReadValueSafe(out float value);
+            if (_model != null) _events.Add(new BanBiEvent((BanBiEventKind)kind, player, other, value));
+        });
+        Listen(EndMessage, (sender, reader) =>
+        {
+            ReadState(reader);
+            if (_model == null || RoundOver) return;
+            if (!IsRunning) Begin();
+            HandleEvents(Now);
+            EndRound(Title);
+        });
+    }
+
+    void ReadState(FastBufferReader reader)
+    {
+        reader.ReadValueSafe(out byte[] state);
+        if (_model != null) StateIO.Unpack(state, _model.ReadState);
+    }
+
+    void SendState(string message, NetworkDelivery delivery)
+    {
+        var state = StateIO.Pack(_model.WriteState);
+        OnlineSession.Instance.Broadcast(message, (ref FastBufferWriter writer) => writer.WriteValueSafe(state), delivery);
+    }
+
+    void OnModelEvent(BanBiEvent e)
+    {
+        _events.Add(e);
+        // Hits are only for sound, which the game doesn't have yet.
+        if (!IsOnlineHost || e.Kind == BanBiEventKind.Hit) return;
+        OnlineSession.Instance.Broadcast(EventMessage, (ref FastBufferWriter writer) =>
+        {
+            writer.WriteValueSafe((int)e.Kind);
+            writer.WriteValueSafe(e.Player);
+            writer.WriteValueSafe(e.Other);
+            writer.WriteValueSafe(e.Value);
+        });
+    }
+
     // Seats stop their own die; during turns only the shared button shoots, for whoever's turn it is.
+    // Online each phone's shoot button only shows on the active player's turn.
     public override void OnPlayerInput(int playerId, bool pressed)
     {
-        if (playerId == ShootId) _shootHeld = pressed;
-        if (!IsRunning || RoundOver || _model == null) return;
-
-        double now = Now;
-        _model.Advance(now);
-        if (_model.Phase == BanBiPhase.DiceRoll)
-        {
-            if (playerId < PlayerCount) _model.Press(playerId, pressed, now);
-        }
-        else if (playerId == ShootId && _model.ActivePlayer >= 0)
-        {
-            _model.Press(_model.ActivePlayer, pressed, now);
-        }
+        if (playerId == ShootId) Shoot(IsOnline ? LocalPlayer : _model?.ActivePlayer ?? -1, pressed, Now);
+        else RollDie(playerId, pressed, Now);
     }
+
+    protected override void OnRemotePlayerInput(int playerId, bool pressed, double time) => RollDie(playerId, pressed, time);
+
+    protected override void OnRemoteButtonInput(int playerId, int button, bool pressed, double time)
+    {
+        if (button == ShootId) Shoot(playerId, pressed, time);
+    }
+
+    void RollDie(int player, bool pressed, double time)
+    {
+        if (!CanPress || player >= PlayerCount) return;
+        _model.Advance(Now);
+        if (_model.Phase != BanBiPhase.DiceRoll) return;
+        _model.Press(player, pressed, time);
+        if (IsOnlineHost) SendState(StateMessage, NetworkDelivery.UnreliableSequenced);
+    }
+
+    void Shoot(int player, bool pressed, double time)
+    {
+        if (!CanPress) return;
+        _model.Advance(Now);
+        if (_model.Phase == BanBiPhase.DiceRoll || player < 0 || player != _model.ActivePlayer) return;
+        _model.Press(player, pressed, time);
+        if (IsOnlineHost) SendState(StateMessage, NetworkDelivery.UnreliableSequenced);
+    }
+
+    bool CanPress => IsRunning && !RoundOver && _model != null;
 
     public override int[] GetRanking() => RanksFromScores(_model.PlayerScores());
 
@@ -172,9 +257,15 @@ public class BanBiGame : PanelMiniGame
             _model.Start(_startTime);
         }
 
+        // A joining phone runs its copy on from the host's last state, without raising events.
         if (IsRunning) _model.Advance(now);
+        if (IsOnlineHost && IsRunning && StateDue()) SendState(StateMessage, NetworkDelivery.UnreliableSequenced);
         HandleEvents(now);
-        if (IsRunning && _model.Phase == BanBiPhase.Finished) EndRound(Title);
+        if (IsRunning && !IsOnlineClient && _model.Phase == BanBiPhase.Finished)
+        {
+            if (IsOnlineHost) SendState(EndMessage, NetworkDelivery.ReliableSequenced);
+            EndRound(Title);
+        }
 
         UpdateView(now);
     }
@@ -220,7 +311,7 @@ public class BanBiGame : PanelMiniGame
                     _hadATurn.Add(e.Player);
                     break;
                 case BanBiEventKind.MarbleOut:
-                    _outAt[e.Player] = now;
+                    if (e.Player < _outAt.Count) _outAt[e.Player] = now;
                     break;
             }
         }
@@ -350,7 +441,16 @@ public class BanBiGame : PanelMiniGame
         var shadowOffset = new Vector2(0.1f, 0.12f) * size;
         for (int i = 0; i < _marbles.Count; i++)
         {
+            // Online the host's state can briefly hold fewer marbles than this phone ran ahead to.
+            if (i >= _model.Marbles.Count)
+            {
+                _marbles[i].style.display = DisplayStyle.None;
+                _shadows[i].style.display = DisplayStyle.None;
+                continue;
+            }
             var state = _model.Marbles[i];
+            // Online the state can say a marble is out before (or without) its event.
+            if (!state.InPlay && double.IsPositiveInfinity(_outAt[i])) _outAt[i] = now;
             float fade = state.InPlay ? 1f : 1f - Mathf.Clamp01((float)((now - _outAt[i]) / OutFadeSeconds));
             var display = fade > 0f ? DisplayStyle.Flex : DisplayStyle.None;
             _marbles[i].style.display = display;
@@ -418,6 +518,7 @@ public class BanBiGame : PanelMiniGame
     // marbles roll, and its touch zone exists only while it shows.
     void PlaceShootButton(Vector2 stage, Rect safe, bool turns, bool waiting)
     {
+        if (IsOnline && _model.ActivePlayer != LocalPlayer) turns = false;
         _shootButton.style.display = turns ? DisplayStyle.Flex : DisplayStyle.None;
         if (!turns)
         {
@@ -437,7 +538,7 @@ public class BanBiGame : PanelMiniGame
         // P1 is the base look; the others have their own seat color.
         for (int id = 1; id < ShootColors.Length; id++)
             _shootButton.EnableInClassList(ShootColors[id], _model.ActivePlayer == id);
-        _shootButton.EnableInClassList("is-pressed", _shootHeld);
+        _shootButton.EnableInClassList("is-pressed", PlayerInputRouter.Instance.IsPressed(ShootId));
         _shootButton.EnableInClassList("is-disabled", waiting);
         _shootName.text = $"P{_model.ActivePlayer + 1}";
 

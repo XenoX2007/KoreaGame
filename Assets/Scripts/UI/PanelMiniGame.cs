@@ -6,17 +6,20 @@ using UnityEngine.UIElements;
 // A mini game drawn with UI Toolkit: owns the panel lifecycle, seats, results and the
 // 1v1/2v2 switch used when a scene is played directly. The HUD must contain seatLayer,
 // timer, centerMessage, togglePlayers and instances of ResultsOverlay.uxml and PauseOverlay.uxml.
-// Online, the host runs the rules: joining phones send presses with the time they happened, and a
-// round starts once every phone has loaded the scene (each phone shows only its own seat).
+// Online, the host runs the rules: joining phones send presses with the time they happened (and their
+// joystick, every frame), and a round starts once every phone has loaded the scene, with a seed from the
+// host so every phone builds the same round. Each phone shows only its own seat, upright.
 [RequireComponent(typeof(PanelRenderer))]
 public abstract class PanelMiniGame : MiniGameBase
 {
     const string FinishedClass = "is-finished";
-    const string PressMessage = "press"; // client -> host: press time, pressed
-    const string RoundMessage = "round"; // host -> clients: when the countdown starts
+    const string PressMessage = "press"; // client -> host: press time, pressed, button (-1 = the seat)
+    const string StickMessage = "stick"; // client -> host: the seat's joystick
+    const string RoundMessage = "round"; // host -> clients: when the countdown starts, the round's seed
     const string SetupMessage = "setup"; // host -> clients: "play again"
     const double OnlineStartDelay = 0.5; // lets the round message reach every phone before the countdown
     const double MaxInputLag = 0.5;      // older presses count as this old, so a stalled phone can't rewrite the past
+    const float StateInterval = 1f / 30f;
 
     [SerializeField] VisualTreeAsset seatTemplate;
 
@@ -30,6 +33,10 @@ public abstract class PanelMiniGame : MiniGameBase
     Rect _pauseZone;
     readonly PausableClock _clock = new PausableClock();
     readonly List<string> _listening = new List<string>();
+    readonly Vector2[] _remoteSticks = new Vector2[SeatLayout.MaxPlayers];
+    Vector2 _sentStick;
+    float _stickSentAt = float.NegativeInfinity;
+    float _stateSentAt = float.NegativeInfinity;
 
     public override bool IsPaused => _clock.IsPaused;
 
@@ -48,11 +55,39 @@ public abstract class PanelMiniGame : MiniGameBase
     // Online it is the shared network clock, so every phone sees the same beats.
     protected double Now => IsOnline ? OnlineSession.Now : _clock.At(Time.unscaledTimeAsDouble);
 
-    // Online: the host has picked when the countdown starts, on every phone at once.
-    protected virtual void OnRoundScheduled(double countdownStart) { }
+    // Online, the one player on this phone; -1 offline.
+    protected static int LocalPlayer => IsOnline ? GameManager.Instance.LocalPlayerId : -1;
+
+    // Online every seat is upright on its own phone; offline it turns to face its side of the table.
+    protected float SeatRotation(int playerId) => IsOnline ? 0f : SeatLayout.Get(PlayerCount)[playerId].Rotation;
+
+    // Where a player's seat (button or joystick) is drawn: online, this phone's one seat.
+    protected Seat SeatOf(int playerId) => IsOnline ? OnlineSeat(LocalPlayer) : SeatLayout.Get(PlayerCount)[playerId];
+
+    // A player's joystick in screen space. Online the host hears the other phones' sticks, while a
+    // joining phone only knows its own.
+    protected Vector2 StickOf(int playerId)
+    {
+        if (!IsOnline || playerId == LocalPlayer) return PlayerInputRouter.Instance.Stick(playerId);
+        return IsOnlineHost && playerId >= 0 && playerId < _remoteSticks.Length ? _remoteSticks[playerId] : Vector2.zero;
+    }
+
+    // Online: true about 30 times a second, when a game sends its state to the other phones.
+    protected bool StateDue()
+    {
+        if (!IsOnline || Time.unscaledTime - _stateSentAt < StateInterval) return false;
+        _stateSentAt = Time.unscaledTime;
+        return true;
+    }
+
+    // Online: the host has picked when the countdown starts and the round's seed, on every phone at once.
+    protected virtual void OnRoundScheduled(double countdownStart, int seed) { }
 
     // Online, on the host: a joining phone's press, with the network time it happened.
     protected virtual void OnRemotePlayerInput(int playerId, bool pressed, double time) => OnPlayerInput(playerId, pressed);
+
+    // Online, on the host: a joining phone pressed one of its extra buttons (a router extra zone id).
+    protected virtual void OnRemoteButtonInput(int playerId, int button, bool pressed, double time) { }
 
     // Online: where a game registers its own messages (they are removed with the scene).
     protected virtual void ListenOnline() { }
@@ -129,9 +164,19 @@ public abstract class PanelMiniGame : MiniGameBase
             {
                 reader.ReadValueSafe(out double time);
                 reader.ReadValueSafe(out bool pressed);
+                reader.ReadValueSafe(out int button);
                 int player = OnlineSession.Instance.PlayerOf(sender);
+                if (player < 0 || IsPaused) return;
                 double now = Now;
-                if (player >= 0) OnRemotePlayerInput(player, pressed, System.Math.Max(System.Math.Min(time, now), now - MaxInputLag));
+                time = System.Math.Max(System.Math.Min(time, now), now - MaxInputLag);
+                if (button < 0) OnRemotePlayerInput(player, pressed, time);
+                else OnRemoteButtonInput(player, button, pressed, time);
+            });
+            Listen(StickMessage, (sender, reader) =>
+            {
+                reader.ReadValueSafe(out Vector2 stick);
+                int player = OnlineSession.Instance.PlayerOf(sender);
+                if (player >= 0 && player < _remoteSticks.Length) _remoteSticks[player] = Vector2.ClampMagnitude(stick, 1f);
             });
         }
         else
@@ -139,7 +184,8 @@ public abstract class PanelMiniGame : MiniGameBase
             Listen(RoundMessage, (sender, reader) =>
             {
                 reader.ReadValueSafe(out double countdownStart);
-                OnRoundScheduled(countdownStart);
+                reader.ReadValueSafe(out int seed);
+                OnRoundScheduled(countdownStart, seed);
             });
             Listen(SetupMessage, (sender, reader) => Setup(PlayerCount));
         }
@@ -154,11 +200,23 @@ public abstract class PanelMiniGame : MiniGameBase
             return;
         }
         double time = Now;
+        int button = playerId >= SeatLayout.MaxPlayers ? playerId : -1;
         OnlineSession.Instance.SendToHost(PressMessage, (ref FastBufferWriter writer) =>
         {
             writer.WriteValueSafe(time);
             writer.WriteValueSafe(pressed);
+            writer.WriteValueSafe(button);
         });
+    }
+
+    // A joining phone's joystick, every frame while it moves and a few times a second while it doesn't.
+    void SendStick()
+    {
+        var stick = PlayerInputRouter.Instance.Stick(LocalPlayer);
+        if (stick == _sentStick && Time.unscaledTime - _stickSentAt < 0.25f) return;
+        _sentStick = stick;
+        _stickSentAt = Time.unscaledTime;
+        OnlineSession.Instance.SendToHost(StickMessage, (ref FastBufferWriter writer) => writer.WriteValueSafe(stick), NetworkDelivery.UnreliableSequenced);
     }
 
     void PlayAgain()
@@ -191,12 +249,19 @@ public abstract class PanelMiniGame : MiniGameBase
             Seats[seat.PlayerId] = view;
         }
 
-        if (IsOnlineHost) _awaitingPlayers = true;
-        else if (IsOnlineClient) OnlineSession.Instance.SendReady();
+        if (IsOnlineHost)
+        {
+            _awaitingPlayers = true;
+            System.Array.Clear(_remoteSticks, 0, _remoteSticks.Length);
+        }
+        else if (IsOnlineClient)
+        {
+            OnlineSession.Instance.SendReady();
+        }
     }
 
     // Online the phone is held by one player, so their seat sits upright at the bottom of their team's side.
-    static Seat OnlineSeat(int playerId) =>
+    protected static Seat OnlineSeat(int playerId) =>
         new Seat(playerId, new Rect(0f, 0f, 1f, 1f), new Vector2(SeatLayout.TeamOf(playerId) == 0 ? 0.12f : 0.88f, 0.15f), 0f);
 
     protected virtual void Update()
@@ -208,9 +273,15 @@ public abstract class PanelMiniGame : MiniGameBase
         {
             _awaitingPlayers = false;
             double countdownStart = Now + OnlineStartDelay;
-            OnlineSession.Instance.Broadcast(RoundMessage, (ref FastBufferWriter writer) => writer.WriteValueSafe(countdownStart));
-            OnRoundScheduled(countdownStart);
+            int seed = System.Environment.TickCount;
+            OnlineSession.Instance.Broadcast(RoundMessage, (ref FastBufferWriter writer) =>
+            {
+                writer.WriteValueSafe(countdownStart);
+                writer.WriteValueSafe(seed);
+            });
+            OnRoundScheduled(countdownStart, seed);
         }
+        if (IsOnlineClient) SendStick();
 
         _results.Update();
         _togglePlayers.text = Localization.Text(PlayerCount == 2 ? "Đổi sang 2 đấu 2" : "Đổi sang 1 đấu 1");

@@ -103,6 +103,9 @@ public class NguoiGoModel
 
     public void SetHeld(int playerId, bool held) => _held[playerId] = held;
 
+    // Online, a joining phone draws the runners where the host says.
+    public void SetPosition(int playerId, float position) => _positions[playerId] = Mathf.Clamp01(position);
+
     // The chant so far, for showing it syllable by syllable.
     public string SungText(double time)
     {

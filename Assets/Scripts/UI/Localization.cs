@@ -90,7 +90,8 @@ public static class Localization
         { "Mất kết nối", new[] { "연결이 끊겼어요", "Connection lost" } },
         { "Không kết nối được", new[] { "연결할 수 없어요", "Couldn't connect" } },
         { "Mời bạn chơi", new[] { "같이 놀자", "Play with me" } },
-        { "Vào chơi Kéo Co với mình trên Sân Chơi!", new[] { "마당에서 같이 줄다리기 하자!", "Come play Tug of War with me in Madang!" } },
+        { "Vào chơi với mình trên Sân Chơi!", new[] { "마당에서 같이 놀자!", "Come play with me in Madang!" } },
+        { "Chọn trò khác", new[] { "다른 게임 고르기", "Pick another game" } },
 
         // Results and podium
         { "Về menu", new[] { "메뉴로", "Menu" } },

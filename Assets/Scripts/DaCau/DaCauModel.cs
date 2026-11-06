@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using UnityEngine;
 
 public enum KickResult
@@ -88,6 +89,52 @@ public class DaCauModel
     }
 
     public int LivesOf(int playerId) => _lives[playerId];
+
+    // Everything but the random generator, which only the host's copy uses: online a joining phone
+    // draws the host's state and never ticks its own.
+    public void WriteState(BinaryWriter writer)
+    {
+        writer.Write(IsFlying);
+        writer.Write(From);
+        writer.Write(To);
+        writer.Write(FlightStart);
+        writer.Write(Arrival);
+        writer.Write((int)Kind);
+        writer.Write(Wind);
+        writer.Write(Rally);
+        writer.Write(IsOver);
+        writer.Write(Winner);
+        writer.Write(_knockedOut);
+        writer.Write(_server);
+        writer.Write(_serveAt);
+        for (int i = 0; i < _lives.Length; i++)
+        {
+            writer.Write(_lives[i]);
+            writer.Write(_knockedOutAt[i]);
+        }
+    }
+
+    public void ReadState(BinaryReader reader)
+    {
+        IsFlying = reader.ReadBoolean();
+        From = reader.ReadInt32();
+        To = reader.ReadInt32();
+        FlightStart = reader.ReadDouble();
+        Arrival = reader.ReadDouble();
+        Kind = (ShuttleKind)reader.ReadInt32();
+        Wind = reader.ReadInt32();
+        Rally = reader.ReadInt32();
+        IsOver = reader.ReadBoolean();
+        Winner = reader.ReadInt32();
+        _knockedOut = reader.ReadInt32();
+        _server = reader.ReadInt32();
+        _serveAt = reader.ReadDouble();
+        for (int i = 0; i < _lives.Length; i++)
+        {
+            _lives[i] = reader.ReadInt32();
+            _knockedOutAt[i] = reader.ReadInt32();
+        }
+    }
 
     public KickResult Tap(int playerId, double time)
     {

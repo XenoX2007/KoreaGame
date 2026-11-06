@@ -4,8 +4,9 @@
       <ui:Label name="resultStage" class="result-stage" picking-mode="Ignore" />
       <ui:Label name="resultTitle" class="result-title" picking-mode="Ignore" />
       <ui:Label name="resultFact" class="result-fact" picking-mode="Ignore" />
-      <ui:VisualElement class="result-actions" picking-mode="Ignore">
+      <ui:VisualElement name="resultActions" class="result-actions" picking-mode="Ignore">
         <ui:Button name="backToMenuButton" class="btn btn--accent result-button" text="Về menu" />
+        <ui:Button name="roomButton" class="btn btn--accent result-button" text="Chọn trò khác" />
         <ui:Button name="playAgainButton" class="btn btn--primary result-button" text="Chơi lại" />
         <ui:Button name="continueButton" class="btn btn--primary result-button" text="Tiếp tục" />
       </ui:VisualElement>

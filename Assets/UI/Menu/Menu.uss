@@ -361,6 +361,39 @@
     opacity: 0.25;
 }
 
+/* The host picks the game here; the others see which one. */
+.online-games {
+    flex-direction: row;
+    margin-bottom: 24px;
+}
+
+.online-game {
+    width: 172px;
+    height: 72px;
+    margin: 0 4px;
+    padding: 0 4px;
+    font-size: 23px;
+    white-space: normal;
+    -unity-text-align: middle-center;
+    background-color: var(--paper-edge);
+    border-bottom-color: #C9B07F;
+}
+
+.online-game.is-selected {
+    background-color: var(--jade);
+    border-bottom-color: var(--jade-deep);
+    color: var(--paper);
+}
+
+/* Joining phones can't change the pick. */
+.online-game:disabled {
+    opacity: 0.5;
+}
+
+.online-game.is-selected:disabled {
+    opacity: 1;
+}
+
 .online-action {
     width: 330px;
     height: 96px;

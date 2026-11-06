@@ -2,12 +2,12 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-// The menu's online card: host a room or join one by code, then wait in the room until it is full.
-// It follows OnlineSession's state, so it also shows why a player was sent back to the menu,
-// and a join link that opened the app goes straight to joining.
+// The menu's online card: host a room or join one by code, then wait in the room until it is full while
+// the host picks the game (every game in the build can be played online). It follows OnlineSession's
+// state, so it also shows why a player was sent back to the menu, and a join link that opened the app
+// goes straight to joining.
 public class OnlinePanel : IDisposable
 {
-    const string OnlineScene = "KeoCo"; // the only game online so far
     const float FlashSeconds = 2f;
 
     readonly VisualElement _panel;
@@ -15,6 +15,7 @@ public class OnlinePanel : IDisposable
     readonly VisualElement _join;
     readonly VisualElement _room;
     readonly VisualElement _slots;
+    readonly VisualElement _games;
     readonly Label _code;
     readonly Button _start;
     readonly TextField _codeField;
@@ -33,6 +34,7 @@ public class OnlinePanel : IDisposable
         _join = root.Q("onlineJoin");
         _room = root.Q("onlineRoom");
         _slots = root.Q("onlineSlots");
+        _games = root.Q("onlineGames");
         _code = root.Q<Label>("roomCode");
         _start = root.Q<Button>("startButton");
         _codeField = root.Q<TextField>("codeField");
@@ -54,7 +56,7 @@ public class OnlinePanel : IDisposable
             Share.Copy(JoinLink.ShareText(Session.Code));
             Flash("Đã sao chép!");
         };
-        _start.clicked += () => Session.StartGame(OnlineScene);
+        _start.clicked += () => Session.StartGame();
 
         var close = root.Q<Button>("onlineCloseButton");
         close.clicked += Close;
@@ -157,6 +159,19 @@ public class OnlinePanel : IDisposable
             slot.AddToClassList($"player--p{i + 1}");
             slot.EnableInClassList("is-empty", i >= Session.ConnectedPlayers);
             _slots.Add(slot);
+        }
+
+        _games.Clear();
+        foreach (var game in CupPicker.AllGames)
+        {
+            if (!Application.CanStreamedLevelBeLoaded(game.Scene)) continue;
+            string scene = game.Scene;
+            var button = new Button(() => Session.SelectGame(scene)) { text = Localization.Text(game.NameVi) };
+            button.AddToClassList("btn");
+            button.AddToClassList("online-game");
+            button.EnableInClassList("is-selected", scene == Session.SelectedGame);
+            button.SetEnabled(OnlineSession.IsHost);
+            _games.Add(button);
         }
     }
 

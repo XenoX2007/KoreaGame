@@ -12,7 +12,7 @@ public static class JoinLink
     public static string Build(string code) => Prefix + Normalize(code);
 
     public static string ShareText(string code) =>
-        $"{Localization.Text("Vào chơi Kéo Co với mình trên Sân Chơi!")}\n" +
+        $"{Localization.Text("Vào chơi với mình trên Sân Chơi!")}\n" +
         $"{Localization.Text("Mã phòng")}: {Normalize(code)}\n{Build(code)}";
 
     // Accepts a full link or a code typed by hand, in any case and with stray spaces.

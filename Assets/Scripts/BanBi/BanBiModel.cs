@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
@@ -348,6 +349,101 @@ public class BanBiModel
         for (int id = 0; id < _playerCount; id++)
             scores[id] = WinnerTeam >= 0 && SeatLayout.TeamOf(id) == WinnerTeam ? 1f : 0f;
         return scores;
+    }
+
+    // ---- Online state ----
+
+    // The whole state, so a joining phone's copy matches the host's and runs on from there.
+    public void WriteState(BinaryWriter writer)
+    {
+        writer.Write((int)Phase);
+        writer.Write(ActivePlayer);
+        writer.Write(WinnerTeam);
+        writer.Write(_phaseStart);
+        writer.Write(_lockedX);
+        writer.Write(_shotPower);
+        writer.Write(_turnLeftAtCharge);
+        writer.Write(_bonusShots);
+        writer.Write(_shotMarble);
+        writer.Write(_shotTouched);
+        writer.Write(_simTime);
+        writer.Write(_rollStart);
+        writer.Write(_lastDieStop);
+        writer.Write(_diceDoneAt);
+        writer.Write(_shotsTaken[0]);
+        writer.Write(_shotsTaken[1]);
+
+        writer.Write((byte)_turnOrder.Count);
+        foreach (int player in _turnOrder) writer.Write((byte)player);
+
+        for (int id = 0; id < _playerCount; id++)
+        {
+            writer.Write(_spinning[id]);
+            writer.Write(_spinStart[id]);
+            writer.Write(_rollCount[id]);
+            writer.Write((byte)_rolls[id].Count);
+            foreach (int roll in _rolls[id]) writer.Write((byte)roll);
+        }
+
+        writer.Write((short)_marbles.Count);
+        foreach (var marble in _marbles)
+        {
+            writer.Write((byte)marble.Team);
+            writer.Write((sbyte)marble.ShotBy);
+            writer.Write(marble.Position);
+            writer.Write(marble.Velocity);
+            writer.Write((byte)((marble.InPlay ? 1 : 0) | (marble.Moved ? 2 : 0)));
+        }
+    }
+
+    public void ReadState(BinaryReader reader)
+    {
+        Phase = (BanBiPhase)reader.ReadInt32();
+        ActivePlayer = reader.ReadInt32();
+        WinnerTeam = reader.ReadInt32();
+        _phaseStart = reader.ReadDouble();
+        _lockedX = reader.ReadSingle();
+        _shotPower = reader.ReadSingle();
+        _turnLeftAtCharge = reader.ReadDouble();
+        _bonusShots = reader.ReadInt32();
+        _shotMarble = reader.ReadInt32();
+        _shotTouched = reader.ReadBoolean();
+        _simTime = reader.ReadDouble();
+        _rollStart = reader.ReadDouble();
+        _lastDieStop = reader.ReadDouble();
+        _diceDoneAt = reader.ReadDouble();
+        _shotsTaken[0] = reader.ReadInt32();
+        _shotsTaken[1] = reader.ReadInt32();
+
+        _turnOrder.Clear();
+        int order = reader.ReadByte();
+        for (int i = 0; i < order; i++) _turnOrder.Add(reader.ReadByte());
+
+        for (int id = 0; id < _playerCount; id++)
+        {
+            _spinning[id] = reader.ReadBoolean();
+            _spinStart[id] = reader.ReadDouble();
+            _rollCount[id] = reader.ReadInt32();
+            _rolls[id].Clear();
+            int rolls = reader.ReadByte();
+            for (int i = 0; i < rolls; i++) _rolls[id].Add(reader.ReadByte());
+        }
+
+        int count = reader.ReadInt16();
+        for (int i = 0; i < count; i++)
+        {
+            int team = reader.ReadByte();
+            if (i >= _marbles.Count) _marbles.Add(new MarbleState(team, Vector2.zero));
+            else if (_marbles[i].Team != team) _marbles[i] = new MarbleState(team, Vector2.zero);
+            var marble = _marbles[i];
+            marble.ShotBy = reader.ReadSByte();
+            marble.Position = reader.ReadVector2();
+            marble.Velocity = reader.ReadVector2();
+            int flags = reader.ReadByte();
+            marble.InPlay = (flags & 1) != 0;
+            marble.Moved = (flags & 2) != 0;
+        }
+        if (_marbles.Count > count) _marbles.RemoveRange(count, _marbles.Count - count);
     }
 
     // ---- Dice ----

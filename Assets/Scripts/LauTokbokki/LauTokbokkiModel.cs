@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public enum Ingredient
@@ -314,6 +315,100 @@ public sealed class LauTokbokkiModel
         if (!double.IsNaN(_startTime)) return;
         _startTime = time;
         _steps = 0;
+    }
+
+    // Everything that changes during a round (recipes and the layout come from the seed), so a joining
+    // phone's copy matches the host's. The random generator stays behind: only the host's refills count.
+    public void WriteState(BinaryWriter writer)
+    {
+        writer.Write(_startTime);
+        writer.Write(_steps);
+        writer.Write(_nextSwapAt);
+        writer.Write(IsOver);
+        writer.Write((sbyte)WinnerPlayer);
+
+        foreach (var p in _players)
+        {
+            writer.Write(p.Position);
+            writer.Write(p.Velocity);
+            writer.Write(p.Stick);
+            writer.Write(p.Facing);
+            writer.WriteOptional((int?)p.Carried);
+            writer.Write(p.StunnedUntil);
+            writer.Write(p.StolenFromAt);
+            writer.Write((byte)p.Pot.Count);
+            for (int i = 0; i < p.Pot.Count; i++)
+            {
+                writer.Write((byte)p.Pot[i]);
+                writer.Write(p.Spoiled[i]);
+            }
+        }
+
+        foreach (var plate in _plates)
+        {
+            writer.WriteOptional((int?)plate.Item);
+            writer.Write(plate.RefillAt);
+            writer.Write(plate.FilledAt);
+        }
+
+        writer.Write((byte)_floor.Count);
+        foreach (var item in _floor)
+        {
+            writer.Write((byte)item.Item);
+            writer.Write(item.Position);
+            writer.Write(item.DroppedAt);
+            writer.Write((sbyte)item.BlockedPlayer);
+            writer.Write(item.BlockedUntil);
+        }
+    }
+
+    public void ReadState(BinaryReader reader)
+    {
+        _startTime = reader.ReadDouble();
+        _steps = reader.ReadInt64();
+        _nextSwapAt = reader.ReadDouble();
+        IsOver = reader.ReadBoolean();
+        WinnerPlayer = reader.ReadSByte();
+
+        foreach (var p in _players)
+        {
+            p.Position = reader.ReadVector2();
+            p.Velocity = reader.ReadVector2();
+            p.Stick = reader.ReadVector2();
+            p.Facing = reader.ReadSingle();
+            p.Carried = (Ingredient?)reader.ReadOptional();
+            p.StunnedUntil = reader.ReadDouble();
+            p.StolenFromAt = reader.ReadDouble();
+            p.Pot.Clear();
+            p.Spoiled.Clear();
+            int count = reader.ReadByte();
+            for (int i = 0; i < count; i++)
+            {
+                p.Pot.Add((Ingredient)reader.ReadByte());
+                p.Spoiled.Add(reader.ReadBoolean());
+            }
+        }
+
+        for (int slot = 0; slot < _plates.Length; slot++)
+        {
+            _plates[slot].Item = (Ingredient?)reader.ReadOptional();
+            _plates[slot].RefillAt = reader.ReadDouble();
+            _plates[slot].FilledAt = reader.ReadDouble();
+        }
+
+        _floor.Clear();
+        int floor = reader.ReadByte();
+        for (int i = 0; i < floor; i++)
+        {
+            _floor.Add(new FloorItem
+            {
+                Item = (Ingredient)reader.ReadByte(),
+                Position = reader.ReadVector2(),
+                DroppedAt = reader.ReadDouble(),
+                BlockedPlayer = reader.ReadSByte(),
+                BlockedUntil = reader.ReadDouble(),
+            });
+        }
     }
 
     // The stick in screen space (length 0..1). Time first runs on with the previous stick.

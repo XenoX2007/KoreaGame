@@ -472,6 +472,13 @@
     margin: 0 14px;
 }
 
+/* The online host's card has a third button (pick another game). */
+.result-actions--three .result-button {
+    width: 284px;
+    margin: 0 8px;
+    font-size: 34px;
+}
+
 /* Sits beside .timer, clear of the seats in the corners. */
 .pause-button {
     position: absolute;

@@ -1,16 +1,39 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 // Người Gỗ / Mugunghwa, 2 or 4 players. Hold to run toward the caller in the middle of the
 // courtyard, let go before they look. The chant alternates between Vietnamese and Korean.
+// Online every phone plays the caller's timeline from the round's seed on the shared clock, so they all
+// see the same turn. The host runs the runners JudgeDelay behind, applying every press at the moment it
+// happened, so a release that reaches it late is still judged against what that player saw.
 public class NguoiGoGame : PanelMiniGame
 {
     const float CountdownSeconds = 3f;
     const float CallerReach = 170f;   // panel units beside the caller where runners reach them
     const float CallerGround = 0.72f; // fraction of the stage height; matches .caller in NguoiGoHud.uss
     const float StartInset = 190f;    // panel units from the seat button to the start of each lane
+    const double JudgeDelay = 0.3;    // online, how far the host's runners trail the clock
+    const string RunMessage = "nguoigo.run";       // host -> clients: each runner's position and whether they move
+    const string CaughtMessage = "nguoigo.caught"; // host -> clients: a runner was caught
+    const string EndMessage = "nguoigo.end";       // host -> clients: final positions
+
+    readonly struct Hold
+    {
+        public readonly double Time;
+        public readonly int Player;
+        public readonly bool Held;
+
+        public Hold(double time, int player, bool held)
+        {
+            Time = time;
+            Player = player;
+            Held = held;
+        }
+    }
 
     public static readonly string[] Facts =
     {
@@ -21,7 +44,10 @@ public class NguoiGoGame : PanelMiniGame
 
     [SerializeField] NguoiGoSettings settings = new NguoiGoSettings();
 
-    NguoiGoModel _model;
+    NguoiGoModel _model;       // the runners
+    NguoiGoModel _callerClock; // the same seed with nobody running: the caller as everyone sees it now
+    double _simTime;           // how far _model has run
+    readonly List<Hold> _holds = new List<Hold>();
     VisualElement _caller;
     VisualElement _lanes;
     VisualElement _runnerLayer;
@@ -45,8 +71,24 @@ public class NguoiGoGame : PanelMiniGame
     {
         base.Setup(playerCount);
 
-        _model = new NguoiGoModel(playerCount, settings, Now + CountdownSeconds, Environment.TickCount);
-        _model.Caught += OnCaught;
+        // Online the round waits for the host's start time and seed.
+        _model = null;
+        _callerClock = null;
+        _runnerLayer.Clear();
+        _runners = Array.Empty<CharacterView>();
+        _laneStarts = _laneEnds = Array.Empty<Vector2>();
+        if (!IsOnline) StartRound(Now + CountdownSeconds, Environment.TickCount);
+    }
+
+    protected override void OnRoundScheduled(double countdownStart, int seed) => StartRound(countdownStart + CountdownSeconds, seed);
+
+    void StartRound(double startTime, int seed)
+    {
+        _model = new NguoiGoModel(PlayerCount, settings, startTime, seed);
+        _callerClock = new NguoiGoModel(PlayerCount, settings, startTime, seed);
+        _simTime = startTime;
+        _holds.Clear();
+        if (!IsOnlineClient) _model.Caught += OnCaught;
         BuildRunners();
         LayoutLanes();
 
@@ -54,17 +96,58 @@ public class NguoiGoGame : PanelMiniGame
         SyncHeld();
     }
 
+    protected override void ListenOnline()
+    {
+        if (IsOnlineHost) return;
+
+        Listen(RunMessage, (sender, reader) =>
+        {
+            if (_model == null) return;
+            for (int i = 0; i < PlayerCount; i++)
+            {
+                reader.ReadValueSafe(out float position);
+                reader.ReadValueSafe(out bool moving);
+                _model.SetPosition(i, position);
+                _model.SetHeld(i, moving);
+            }
+        });
+        Listen(CaughtMessage, (sender, reader) =>
+        {
+            reader.ReadValueSafe(out int player);
+            OnCaught(player);
+        });
+        Listen(EndMessage, (sender, reader) =>
+        {
+            if (_model == null || RoundOver) return;
+            for (int i = 0; i < PlayerCount; i++)
+            {
+                reader.ReadValueSafe(out float position);
+                _model.SetPosition(i, position);
+                _model.SetHeld(i, false);
+            }
+            if (!IsRunning) Begin();
+            EndRound(ResultTitle);
+        });
+    }
+
     protected override void OnResumed() => SyncHeld();
 
     void SyncHeld()
     {
+        if (_model == null || IsOnlineClient) return;
         var router = PlayerInputRouter.Instance;
-        for (int i = 0; i < PlayerCount; i++) _model.SetHeld(i, router.IsPressed(i));
+        for (int i = 0; i < PlayerCount; i++)
+            if (!IsOnline || i == LocalPlayer) _holds.Add(new Hold(Now, i, router.IsPressed(i)));
     }
 
     public override void OnPlayerInput(int playerId, bool pressed)
     {
-        if (_model != null) _model.SetHeld(playerId, pressed);
+        if (_model != null && playerId < PlayerCount) _holds.Add(new Hold(Now, playerId, pressed));
+    }
+
+    protected override void OnRemotePlayerInput(int playerId, bool pressed, double time)
+    {
+        if (_model != null && playerId < PlayerCount) _holds.Add(new Hold(time, playerId, pressed));
     }
 
     public override int[] GetRanking() => RanksFromScores(_model.PlayerScores());
@@ -76,14 +159,65 @@ public class NguoiGoGame : PanelMiniGame
         double now = Now;
 
         if (!IsRunning && !RoundOver && now >= _model.StartTime) Begin();
+        if (IsRunning) _callerClock.Tick(now, 0f);
 
-        if (IsRunning)
+        if (!IsOnlineClient && !RoundOver)
         {
-            _model.Tick(now, Time.unscaledDeltaTime);
-            if (_model.IsOver) EndRound(ResultTitle);
+            RunTo(IsOnline ? now - JudgeDelay : now);
+            if (IsOnlineHost && StateDue()) SendRunners();
+            if (_model.IsOver)
+            {
+                if (IsOnlineHost) SendEnd();
+                EndRound(ResultTitle);
+            }
         }
 
         UpdateView(now);
+    }
+
+    // Runs the runners up to this time, applying each press at its own moment, in the order they happened.
+    void RunTo(double time)
+    {
+        _holds.Sort((a, b) => a.Time.CompareTo(b.Time));
+        int used = 0;
+        for (; used < _holds.Count && _holds[used].Time <= time && !_model.IsOver; used++)
+        {
+            TickTo(_holds[used].Time);
+            _model.SetHeld(_holds[used].Player, _holds[used].Held);
+        }
+        _holds.RemoveRange(0, used);
+        TickTo(time);
+    }
+
+    void TickTo(double time)
+    {
+        if (time <= _simTime || time <= _model.StartTime) return;
+        _model.Tick(time, (float)(time - _simTime));
+        _simTime = time;
+    }
+
+    void SendRunners()
+    {
+        var model = _model;
+        int count = PlayerCount;
+        OnlineSession.Instance.Broadcast(RunMessage, (ref FastBufferWriter writer) =>
+        {
+            for (int i = 0; i < count; i++)
+            {
+                writer.WriteValueSafe(model.PositionOf(i));
+                writer.WriteValueSafe(model.IsMoving(i));
+            }
+        }, NetworkDelivery.UnreliableSequenced);
+    }
+
+    void SendEnd()
+    {
+        var model = _model;
+        int count = PlayerCount;
+        OnlineSession.Instance.Broadcast(EndMessage, (ref FastBufferWriter writer) =>
+        {
+            for (int i = 0; i < count; i++) writer.WriteValueSafe(model.PositionOf(i));
+        });
     }
 
     string ResultTitle()
@@ -96,7 +230,11 @@ public class NguoiGoGame : PanelMiniGame
         return Localization.Won(string.Join(" + ", names));
     }
 
-    void OnCaught(int playerId) => Seats[playerId].ShowFeedback("Bị bắt!", "feedback--miss", Now);
+    void OnCaught(int playerId)
+    {
+        Seats[playerId]?.ShowFeedback("Bị bắt!", "feedback--miss", Now);
+        if (IsOnlineHost) OnlineSession.Instance.Broadcast(CaughtMessage, (ref FastBufferWriter writer) => writer.WriteValueSafe(playerId));
+    }
 
     void UpdateView(double now)
     {
@@ -105,7 +243,7 @@ public class NguoiGoGame : PanelMiniGame
         Timer.EnableInClassList("timer--final", left <= 10.0);
         CenterMessage.text = RoundOver ? "" : CountdownText(_model.StartTime - now, "Chạy!");
 
-        var phase = IsRunning || RoundOver ? _model.Phase : CallerPhase.Chanting;
+        var phase = IsRunning || RoundOver ? _callerClock.Phase : CallerPhase.Chanting;
         bool looking = phase == CallerPhase.Turning || phase == CallerPhase.Watching;
         _caller.EnableInClassList("is-watching", looking);
 
@@ -113,18 +251,19 @@ public class NguoiGoGame : PanelMiniGame
         float twitch = phase == CallerPhase.Tell ? 3f : phase == CallerPhase.Fake ? 7f : 0f;
         _caller.style.rotate = new Rotate(new Angle(Mathf.Sin((float)now * 42f) * twitch));
 
-        string chant = !IsRunning ? "" : phase == CallerPhase.Watching ? Localization.Text("Đứng im!") : _model.SungText(now);
+        string chant = !IsRunning ? "" : phase == CallerPhase.Watching ? Localization.Text("Đứng im!") : _callerClock.SungText(now);
         foreach (var seat in Seats)
         {
+            if (seat == null) continue;
             seat.Chant.text = chant;
             seat.Chant.style.opacity = 1f;
         }
 
         float stageHeight = _runnerLayer.resolvedStyle.height;
-        for (int i = 0; i < _runners.Length; i++)
+        for (int i = 0; i < _runners.Length && i < _laneStarts.Length; i++)
         {
             bool moving = IsRunning && _model.IsMoving(i);
-            Seats[i].Ring.style.display = moving ? DisplayStyle.Flex : DisplayStyle.None;
+            if (Seats[i] != null) Seats[i].Ring.style.display = moving ? DisplayStyle.Flex : DisplayStyle.None;
 
             var feet = Vector2.Lerp(_laneStarts[i], _laneEnds[i], _model.PositionOf(i));
             float scale = CharacterView.DepthScale(feet.y / stageHeight);
@@ -150,7 +289,7 @@ public class NguoiGoGame : PanelMiniGame
     void LayoutLanes()
     {
         var size = new Vector2(_runnerLayer.resolvedStyle.width, _runnerLayer.resolvedStyle.height);
-        if (float.IsNaN(size.x) || size.x < 1f || PlayerCount == 0) return;
+        if (float.IsNaN(size.x) || size.x < 1f || PlayerCount == 0 || _runners.Length != PlayerCount) return;
 
         var seats = SeatLayout.Get(PlayerCount);
         _laneStarts = new Vector2[seats.Length];

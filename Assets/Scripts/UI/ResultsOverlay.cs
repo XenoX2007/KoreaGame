@@ -13,6 +13,8 @@ public class ResultsOverlay
     readonly Button _continue;
     readonly Button _playAgain;
     readonly Button _backToMenu;
+    readonly Button _room;
+    readonly VisualElement _actions;
     Func<string> _titleText;
     string[] _facts;
     bool _tournament;
@@ -28,8 +30,11 @@ public class ResultsOverlay
         _continue = root.Q<Button>("continueButton");
         _playAgain = root.Q<Button>("playAgainButton");
         _backToMenu = root.Q<Button>("backToMenuButton");
+        _room = root.Q<Button>("roomButton");
+        _actions = root.Q("resultActions");
 
         _continue.clicked += () => GameManager.Instance.Continue();
+        _room.clicked += () => OnlineSession.Instance.ReturnToRoom();
         _playAgain.clicked += () => PlayAgain?.Invoke();
         _backToMenu.clicked += BackToMenu;
     }
@@ -44,8 +49,12 @@ public class ResultsOverlay
         _tournament = tournament;
         // Online only the host can start another round; everyone can leave.
         bool canReplay = !tournament && (mode != SessionMode.Online || OnlineSession.IsHost);
+        // ...and take everyone back to the room to pick another game.
+        bool canPickAnother = mode == SessionMode.Online && OnlineSession.IsHost;
         _continue.style.display = tournament ? DisplayStyle.Flex : DisplayStyle.None;
         _playAgain.style.display = canReplay ? DisplayStyle.Flex : DisplayStyle.None;
+        _room.style.display = canPickAnother ? DisplayStyle.Flex : DisplayStyle.None;
+        _actions.EnableInClassList("result-actions--three", canPickAnother);
         _backToMenu.style.display = tournament ? DisplayStyle.None : DisplayStyle.Flex;
         _stage.style.display = tournament ? DisplayStyle.Flex : DisplayStyle.None;
 

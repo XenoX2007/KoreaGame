@@ -1,15 +1,25 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 // Tách Kẹo / Ppopgi, 2 or 4 players at once, each for themselves. Everyone steers a needle around the
 // shape stamped in their own honeycomb candy with their own joystick; a cracked candy is replaced and
 // the clock keeps running. Fastest clean cut wins, then whoever carved the most.
+// Nobody's candy touches anyone else's, so online each phone cuts its own player's candy (the needle
+// answers at once) and shares it; the host passes every candy on to the others. When time is up the
+// host waits briefly for each phone's last word, then sends everyone the final candies.
 public class TachKeoGame : PanelMiniGame
 {
     const float CountdownSeconds = 3f;
     const float FinalSeconds = 5f;
+    const float FinalWaitSeconds = 1f;
+    const string CandyMessage = "tachkeo.candy";   // a player's candy, every few frames (unreliable)
+    const string ChangeMessage = "tachkeo.change"; // a player's candy after it broke, restarted or was done
+    const string FinalMessage = "tachkeo.final";   // client -> host: a player's candy once the round is over
+    const string EndMessage = "tachkeo.end";       // host -> clients: every final candy
     const float FourCandyOfHeight = 0.213f;  // 230 px at 1080 tall
     const float TwoCandyOfHeight = 0.315f;   // 340 px
     const float FourShift = 80f;             // toward the screen's vertical midline, at 1080 tall
@@ -67,6 +77,10 @@ public class TachKeoGame : PanelMiniGame
     TachKeoModel _model;
     double _startTime;
     string[] _facts = Facts[0];
+    CutState _sentState;
+    bool _sentFinal;
+    float _overAt = float.NaN;
+    readonly HashSet<int> _finalFrom = new HashSet<int>();
     VisualElement _hud;
     VisualElement _stageLayer;
     VisualElement _seatLayer;
@@ -107,14 +121,87 @@ public class TachKeoGame : PanelMiniGame
     {
         base.Setup(playerCount);
 
-        int seed = Environment.TickCount;
-        _facts = Facts[(seed & int.MaxValue) % Facts.Length];
-        _startTime = Now + CountdownSeconds;
-        _model = new TachKeoModel(settings, playerCount, seed);
-        _model.Event += OnModelEvent;
+        // Online the round waits for the host's start time and seed.
+        _model = null;
+        _tinLayer.Clear();
+        _candies = Array.Empty<CandyView>();
         _hud.EnableInClassList("tach-keo--four", playerCount == 4);
+        if (!IsOnline) StartRound(Now + CountdownSeconds, Environment.TickCount);
+    }
+
+    protected override void OnRoundScheduled(double countdownStart, int seed) => StartRound(countdownStart + CountdownSeconds, seed);
+
+    void StartRound(double startTime, int seed)
+    {
+        _facts = Facts[(seed & int.MaxValue) % Facts.Length];
+        _startTime = startTime;
+        _model = new TachKeoModel(settings, PlayerCount, seed);
+        if (IsOnline)
+            for (int id = 0; id < PlayerCount; id++) _model.SetSimulated(id, id == LocalPlayer);
+        _model.Event += OnModelEvent;
+        _sentState = CutState.Waiting;
+        _sentFinal = false;
+        _overAt = float.NaN;
+        _finalFrom.Clear();
         BuildCandies();
         BuildJoysticks();
+    }
+
+    protected override void ListenOnline()
+    {
+        Listen(CandyMessage, (sender, reader) => OnCandy(sender, reader, CandyMessage, NetworkDelivery.UnreliableSequenced));
+        Listen(ChangeMessage, (sender, reader) => OnCandy(sender, reader, ChangeMessage, NetworkDelivery.ReliableSequenced));
+        if (IsOnlineHost)
+        {
+            Listen(FinalMessage, (sender, reader) =>
+            {
+                int player = OnCandy(sender, reader, ChangeMessage, NetworkDelivery.ReliableSequenced);
+                if (player >= 0) _finalFrom.Add(player);
+            });
+        }
+        else
+        {
+            Listen(EndMessage, (sender, reader) =>
+            {
+                for (int i = 0; i < PlayerCount; i++) ReadCandy(reader);
+                if (_model == null || RoundOver) return;
+                if (!IsRunning) Begin();
+                EndRound(Title);
+            });
+        }
+    }
+
+    // Another phone's candy. The host checks it came from that player's own phone and passes it on.
+    int OnCandy(ulong sender, FastBufferReader reader, string relayAs, NetworkDelivery delivery)
+    {
+        int player = ReadCandy(reader);
+        if (player < 0 || !IsOnlineHost || OnlineSession.Instance.PlayerOf(sender) != player) return -1;
+        SendCandy(player, relayAs, delivery);
+        return player;
+    }
+
+    int ReadCandy(FastBufferReader reader)
+    {
+        reader.ReadValueSafe(out int player);
+        reader.ReadValueSafe(out byte[] candy);
+        if (_model == null || player < 0 || player >= PlayerCount || player == LocalPlayer) return -1;
+
+        bool wasBroken = _model.StateOf(player) == CutState.Broken;
+        StateIO.Unpack(candy, r => _model.ReadPlayer(player, r));
+        if (wasBroken && _model.StateOf(player) == CutState.Cutting) _candies[player].RestartedAt = Now;
+        return player;
+    }
+
+    void SendCandy(int player, string message, NetworkDelivery delivery)
+    {
+        var candy = StateIO.Pack(w => _model.WritePlayer(player, w));
+        OnlineSession.Write write = (ref FastBufferWriter writer) =>
+        {
+            writer.WriteValueSafe(player);
+            writer.WriteValueSafe(candy);
+        };
+        if (IsOnlineHost) OnlineSession.Instance.Broadcast(message, write, delivery);
+        else OnlineSession.Instance.SendToHost(message, write, delivery);
     }
 
     // Presses mean nothing here: the needle follows the stick.
@@ -136,13 +223,65 @@ public class TachKeoGame : PanelMiniGame
 
         if (IsRunning)
         {
-            var router = PlayerInputRouter.Instance;
-            for (int id = 0; id < PlayerCount; id++) _model.SetStick(id, ToCandy(router.Stick(id), id), now);
+            for (int id = 0; id < PlayerCount; id++)
+                if (!IsOnline || id == LocalPlayer) _model.SetStick(id, ToCandy(StickOf(id), id), now);
             _model.Advance(now);
-            if (_model.IsOver) EndRound(Title);
+            if (IsOnline) ShareOwnCandy();
+            if (_model.IsOver) FinishWhenEveryoneHasSaid();
         }
 
         UpdateView(now);
+    }
+
+    void ShareOwnCandy()
+    {
+        int me = LocalPlayer;
+        var state = _model.StateOf(me);
+        if (state != _sentState)
+        {
+            _sentState = state;
+            SendCandy(me, ChangeMessage, NetworkDelivery.ReliableSequenced);
+        }
+        else if (StateDue())
+        {
+            SendCandy(me, CandyMessage, NetworkDelivery.UnreliableSequenced);
+        }
+    }
+
+    // Offline the round just ends. Online a joining phone sends its last candy and waits for the host's
+    // end; the host waits for those (or FinalWaitSeconds) and sends everyone the final candies.
+    void FinishWhenEveryoneHasSaid()
+    {
+        if (!IsOnline)
+        {
+            EndRound(Title);
+            return;
+        }
+
+        if (IsOnlineClient)
+        {
+            if (_sentFinal) return;
+            _sentFinal = true;
+            SendCandy(LocalPlayer, FinalMessage, NetworkDelivery.ReliableSequenced);
+            return;
+        }
+
+        if (float.IsNaN(_overAt)) _overAt = Time.unscaledTime;
+        bool everyone = Enumerable.Range(0, PlayerCount).All(id => id == LocalPlayer || _finalFrom.Contains(id));
+        if (!everyone && Time.unscaledTime - _overAt < FinalWaitSeconds) return;
+
+        var model = _model;
+        int count = PlayerCount;
+        var candies = Enumerable.Range(0, count).Select(id => StateIO.Pack(w => model.WritePlayer(id, w))).ToArray();
+        OnlineSession.Instance.Broadcast(EndMessage, (ref FastBufferWriter writer) =>
+        {
+            for (int id = 0; id < count; id++)
+            {
+                writer.WriteValueSafe(id);
+                writer.WriteValueSafe(candies[id]);
+            }
+        });
+        EndRound(Title);
     }
 
     string Title()
@@ -164,10 +303,7 @@ public class TachKeoGame : PanelMiniGame
     }
 
     // The stick in screen space, turned so "away from the player" is +y on their candy.
-    static Vector2 ToCandy(Vector2 stick, int playerId, int playerCount) =>
-        Rotate(stick, -SeatLayout.Get(playerCount)[playerId].Rotation);
-
-    Vector2 ToCandy(Vector2 stick, int playerId) => ToCandy(stick, playerId, PlayerCount);
+    Vector2 ToCandy(Vector2 stick, int playerId) => Rotate(stick, -SeatRotation(playerId));
 
     static Vector2 Rotate(Vector2 v, float degrees)
     {
@@ -247,7 +383,6 @@ public class TachKeoGame : PanelMiniGame
         var stage = new Vector2(_stageLayer.resolvedStyle.width, _stageLayer.resolvedStyle.height);
         if (float.IsNaN(stage.x) || stage.y < 1f) return;
         var safe = _seatLayer.layout;
-        var router = PlayerInputRouter.Instance;
 
         for (int id = 0; id < PlayerCount; id++)
         {
@@ -262,7 +397,7 @@ public class TachKeoGame : PanelMiniGame
             view.Drawing.MarkDirtyRepaint();
 
             if (_knobs[id] == null) continue;
-            var stick = IsRunning || counting ? ToCandy(router.Stick(id), id) : Vector2.zero;
+            var stick = IsRunning || counting ? ToCandy(StickOf(id), id) : Vector2.zero;
             _knobs[id].style.translate = new Translate(stick.x * KnobTravel, -stick.y * KnobTravel);
             UpdateStatus(id);
         }
@@ -294,7 +429,9 @@ public class TachKeoGame : PanelMiniGame
         var cell = new Rect(seat.Zone.x * stage.x, (1f - seat.Zone.yMax) * stage.y, seat.Zone.width * stage.x, seat.Zone.height * stage.y);
         float towardMiddle = Mathf.Sign(stage.x / 2f - cell.center.x);
         var desired = cell.center + new Vector2(towardMiddle * (four ? FourShift : TwoShift) * unit, 0f);
-        var joystick = new Vector2(safe.x + seat.Anchor.x * safe.width, safe.y + (1f - seat.Anchor.y) * safe.height);
+        // Online the only joystick is this phone's, so every tin keeps clear of it.
+        var stickSeat = SeatOf(id);
+        var joystick = new Vector2(safe.x + stickSeat.Anchor.x * safe.width, safe.y + (1f - stickSeat.Anchor.y) * safe.height);
 
         float tinRadius = (four ? FourCandyOfHeight : TwoCandyOfHeight) * stage.y * TinScale;
         var center = FitTin(cell, desired, ref tinRadius, joystick, JoystickClearance, TinGap * unit);
@@ -304,7 +441,7 @@ public class TachKeoGame : PanelMiniGame
         root.width = root.height = 2f * tinRadius;
         root.borderTopLeftRadius = root.borderTopRightRadius = root.borderBottomLeftRadius = root.borderBottomRightRadius = tinRadius;
         root.translate = new Translate(center.x - tinRadius, center.y - tinRadius);
-        root.rotate = new Rotate(new Angle(-seat.Rotation)); // seat rotation is counter-clockwise, USS is clockwise
+        root.rotate = new Rotate(new Angle(-SeatRotation(id))); // seat rotation is counter-clockwise, USS is clockwise
 
         float r = view.CandyRadius;
         PlaceLabel(view.ShapeName, tinRadius, new Vector2(0f, -0.66f), r * 1.3f, r * 0.24f, r * 0.15f);

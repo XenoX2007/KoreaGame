@@ -27,11 +27,15 @@ public class OnlineSession : MonoBehaviour
 {
     public delegate void Write(ref FastBufferWriter writer);
 
+    public const int MaxMessageBytes = 8192;
+    public const string DefaultGame = "KeoCo";
+
     // Handled here rather than in a game scene, because they arrive on the menu.
     const string HelloMessage = "hello"; // client -> host, once connected
-    const string LobbyMessage = "lobby"; // host -> clients: players connected, room size
+    const string LobbyMessage = "lobby"; // host -> clients: players connected, room size, picked game
     const string StartMessage = "start"; // host -> one client: its player id, player count, scene
     const string ReadyMessage = "ready"; // client -> host: the scene is loaded and listening
+    const string RoomMessage = "room";   // host -> clients: back to the room to pick another game
 
     public static OnlineSession Instance { get; private set; }
 
@@ -52,6 +56,9 @@ public class OnlineSession : MonoBehaviour
     public string Code => _session?.Code;
     public int MaxPlayers { get; private set; }
     public int ConnectedPlayers { get; private set; }
+
+    // The game the host has picked in the room (a scene name); the others hear it with the lobby.
+    public string SelectedGame { get; private set; } = DefaultGame;
 
     // A join code from a link that opened the app, waiting for the menu to use it.
     public string PendingJoinCode { get; set; }
@@ -101,6 +108,7 @@ public class OnlineSession : MonoBehaviour
     public async Task HostAsync(int playerCount)
     {
         _hosting = true;
+        SelectedGame = DefaultGame;
         await Connect(async () =>
         {
             var options = new SessionOptions { MaxPlayers = playerCount, IsPrivate = true }.WithRelayNetwork();
@@ -156,10 +164,20 @@ public class OnlineSession : MonoBehaviour
         return "Không kết nối được";
     }
 
-    // The host starts the game once the room is full: every phone loads the scene with its own player id.
+    public void SelectGame(string scene)
+    {
+        if (!IsHost || State != OnlineState.Lobby || scene == SelectedGame) return;
+        SelectedGame = scene;
+        RefreshLobby();
+    }
+
+    // The host starts the picked game once the room is full: every phone loads it with its own player id.
+    public void StartGame() => StartGame(SelectedGame);
+
     public async void StartGame(string scene)
     {
         if (!IsHost || State != OnlineState.Lobby) return;
+        SelectedGame = scene;
 
         _seats = OnlineSeats.Assign(_network.LocalClientId, _network.ConnectedClientsIds);
         _ready.Clear();
@@ -177,15 +195,41 @@ public class OnlineSession : MonoBehaviour
         BeginGame(scene, MaxPlayers, 0);
 
         // Nobody can join a game that has already started.
+        await SetLocked(true);
+    }
+
+    // The host ends the game for everyone and takes them back to the room to pick another one. The room
+    // opens again, so someone who dropped out can be replaced.
+    public async void ReturnToRoom()
+    {
+        if (!IsHost || State != OnlineState.Playing) return;
+        Broadcast(RoomMessage);
+        EnterRoom();
+        RefreshLobby();
+        await SetLocked(false);
+    }
+
+    void EnterRoom()
+    {
+        State = OnlineState.Lobby;
+        _ready.Clear();
+        if (GameManager.Instance != null) GameManager.Instance.ReturnToMenu();
+        else SceneManager.LoadScene("Menu");
+        Changed?.Invoke();
+    }
+
+    async Task SetLocked(bool locked)
+    {
         try
         {
-            var host = _session.AsHost();
-            host.IsLocked = true;
+            var host = _session?.AsHost();
+            if (host == null) return;
+            host.IsLocked = locked;
             await host.SavePropertiesAsync();
         }
         catch (Exception e)
         {
-            Debug.LogWarning($"Online: could not lock the room: {e.Message}");
+            Debug.LogWarning($"Online: could not {(locked ? "lock" : "unlock")} the room: {e.Message}");
         }
     }
 
@@ -267,7 +311,8 @@ public class OnlineSession : MonoBehaviour
 
     static FastBufferWriter NewWriter(Write write)
     {
-        var writer = new FastBufferWriter(64, Allocator.Temp, 1024);
+        // Room for a game's whole state; the transport splits anything longer than a packet.
+        var writer = new FastBufferWriter(256, Allocator.Temp, MaxMessageBytes);
         write?.Invoke(ref writer);
         return writer;
     }
@@ -310,10 +355,13 @@ public class OnlineSession : MonoBehaviour
         {
             reader.ReadValueSafe(out int connected);
             reader.ReadValueSafe(out int max);
+            reader.ReadValueSafe(out string game);
             ConnectedPlayers = connected;
             MaxPlayers = max;
+            SelectedGame = game;
             Changed?.Invoke();
         });
+        Listen(RoomMessage, (sender, reader) => EnterRoom());
         Listen(StartMessage, (sender, reader) =>
         {
             reader.ReadValueSafe(out int player);
@@ -352,11 +400,13 @@ public class OnlineSession : MonoBehaviour
         if (!_network.IsHost) return;
         int connected = _network.ConnectedClientsIds.Count;
         int max = MaxPlayers;
+        string game = SelectedGame;
         ConnectedPlayers = connected;
         Broadcast(LobbyMessage, (ref FastBufferWriter writer) =>
         {
             writer.WriteValueSafe(connected);
             writer.WriteValueSafe(max);
+            writer.WriteValueSafe(game);
         });
         Changed?.Invoke();
     }

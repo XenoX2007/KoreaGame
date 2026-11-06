@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -23,9 +24,15 @@ public class LauTokbokkiArt
 // Lẩu Tokbokki / Jeukseok tteokbokki, 2 or 4 players at once, each for themselves. Walk with your
 // joystick, grab what your recipe needs off the spinning table and bring it to your pot; tap the
 // joystick at a rival's pot to steal, and run into people to knock their ingredient loose.
+// Online the host runs the rules with every phone's joystick and judges taps by when they happened. The
+// other phones copy the host's state as it arrives and run it on to now with their own stick as it is
+// this moment, so their own player answers without waiting for the host.
 public class LauTokbokkiGame : PanelMiniGame
 {
     const float CountdownSeconds = 3f;
+    const string StateMessage = "lautokbokki.state"; // host -> clients: the model's state
+    const string EventMessage = "lautokbokki.event"; // host -> clients: a pot event worth showing
+    const string EndMessage = "lautokbokki.end";     // host -> clients: the final state
     const float FinalSeconds = 10f;
     const float ReferenceUnit = 120f;      // panel px per arena unit at 1080 tall
     const float PotSize = 1.6f;            // the pot art, wider than its solid circle
@@ -146,14 +153,30 @@ public class LauTokbokkiGame : PanelMiniGame
     {
         base.Setup(playerCount);
 
-        int seed = Environment.TickCount;
+        // Online the round waits for the host's start time and seed.
+        _model = null;
+        _views = Array.Empty<PlayerView>();
+        _tableLayer.Clear();
+        _cardLayer.Clear();
+        _potLayer.Clear();
+        _playerLayer.Clear();
+        _feedbackLayer.Clear();
+        _floorItemLayer.Clear();
+        _floorItems.Clear();
+        if (!IsOnline) StartRound(Now + CountdownSeconds, Environment.TickCount);
+    }
+
+    protected override void OnRoundScheduled(double countdownStart, int seed) => StartRound(countdownStart + CountdownSeconds, seed);
+
+    void StartRound(double startTime, int seed)
+    {
         _facts = Facts[(seed & int.MaxValue) % Facts.Length];
-        _startTime = Now + CountdownSeconds;
-        _model = new LauTokbokkiModel(settings, playerCount, seed);
-        _model.Event += OnModelEvent;
-        _pressedAt = Enumerable.Repeat(double.NaN, playerCount).ToArray();
-        _pressTilt = new float[playerCount];
-        _tappedAt = Enumerable.Repeat(double.NegativeInfinity, playerCount).ToArray();
+        _startTime = startTime;
+        _model = new LauTokbokkiModel(settings, PlayerCount, seed);
+        if (!IsOnlineClient) _model.Event += OnModelEvent;
+        _pressedAt = Enumerable.Repeat(double.NaN, PlayerCount).ToArray();
+        _pressTilt = new float[PlayerCount];
+        _tappedAt = Enumerable.Repeat(double.NegativeInfinity, PlayerCount).ToArray();
         BuildTable();
         BuildPlayers();
         _floorItemLayer.Clear();
@@ -161,22 +184,62 @@ public class LauTokbokkiGame : PanelMiniGame
         _floorDrawing.MarkDirtyRepaint();
     }
 
-    public override void OnPlayerInput(int playerId, bool pressed)
+    protected override void ListenOnline()
+    {
+        if (IsOnlineHost) return;
+
+        Listen(StateMessage, (sender, reader) => ReadState(reader));
+        Listen(EventMessage, (sender, reader) =>
+        {
+            reader.ReadValueSafe(out int kind);
+            reader.ReadValueSafe(out int player);
+            reader.ReadValueSafe(out int other);
+            if (_model != null) ShowEvent(new LtEvent((LtEventKind)kind, player, other));
+        });
+        Listen(EndMessage, (sender, reader) =>
+        {
+            ReadState(reader);
+            if (_model == null || RoundOver) return;
+            if (!IsRunning) Begin();
+            EndRound(Title);
+        });
+    }
+
+    // The host's state, then this phone's own stick as it is now, so the next frame runs on with it.
+    void ReadState(FastBufferReader reader)
+    {
+        reader.ReadValueSafe(out byte[] state);
+        if (_model == null) return;
+        StateIO.Unpack(state, _model.ReadState);
+        if (IsRunning && !RoundOver) _model.SetStick(LocalPlayer, StickOf(LocalPlayer), _model.SimulatedTime);
+    }
+
+    void SendState(string message, NetworkDelivery delivery)
+    {
+        var state = StateIO.Pack(_model.WriteState);
+        OnlineSession.Instance.Broadcast(message, (ref FastBufferWriter writer) => writer.WriteValueSafe(state), delivery);
+    }
+
+    public override void OnPlayerInput(int playerId, bool pressed) => Press(playerId, pressed, Now);
+
+    protected override void OnRemotePlayerInput(int playerId, bool pressed, double time) => Press(playerId, pressed, time);
+
+    // A tap is a short press that never really tilted the stick.
+    void Press(int playerId, bool pressed, double time)
     {
         if (_model == null || playerId >= PlayerCount) return;
-        double now = Now;
         if (pressed)
         {
-            _pressedAt[playerId] = now;
-            _pressTilt[playerId] = PlayerInputRouter.Instance.Stick(playerId).magnitude;
+            _pressedAt[playerId] = time;
+            _pressTilt[playerId] = StickOf(playerId).magnitude;
             return;
         }
 
-        bool tap = !double.IsNaN(_pressedAt[playerId]) && now - _pressedAt[playerId] < settings.tapSeconds && _pressTilt[playerId] <= TapMaxTilt;
+        bool tap = !double.IsNaN(_pressedAt[playerId]) && time - _pressedAt[playerId] < settings.tapSeconds && _pressTilt[playerId] <= TapMaxTilt;
         _pressedAt[playerId] = double.NaN;
-        if (!tap || !IsRunning) return;
-        _tappedAt[playerId] = now;
-        _model.Action(playerId, now);
+        if (!tap || !IsRunning || RoundOver) return;
+        _tappedAt[playerId] = Now;
+        _model.Action(playerId, time);
     }
 
     public override int[] GetRanking() => _model.Ranking();
@@ -193,15 +256,22 @@ public class LauTokbokkiGame : PanelMiniGame
             _model.Start(_startTime);
         }
 
-        var router = PlayerInputRouter.Instance;
         for (int id = 0; id < PlayerCount; id++)
-            if (!double.IsNaN(_pressedAt[id])) _pressTilt[id] = Mathf.Max(_pressTilt[id], router.Stick(id).magnitude);
+            if (!double.IsNaN(_pressedAt[id])) _pressTilt[id] = Mathf.Max(_pressTilt[id], StickOf(id).magnitude);
 
-        if (IsRunning)
+        if (IsRunning && !RoundOver)
         {
-            for (int id = 0; id < PlayerCount; id++) _model.SetStick(id, router.Stick(id), now);
+            // A joining phone only knows its own stick; the others keep the host's.
+            for (int id = 0; id < PlayerCount; id++)
+                if (!IsOnlineClient || id == LocalPlayer) _model.SetStick(id, StickOf(id), now);
             _model.Advance(now);
-            if (_model.IsOver) EndRound(Title);
+
+            if (IsOnlineHost && StateDue()) SendState(StateMessage, NetworkDelivery.UnreliableSequenced);
+            if (_model.IsOver && !IsOnlineClient)
+            {
+                if (IsOnlineHost) SendState(EndMessage, NetworkDelivery.ReliableSequenced);
+                EndRound(Title);
+            }
         }
 
         UpdateView(now);
@@ -210,6 +280,19 @@ public class LauTokbokkiGame : PanelMiniGame
     string Title() => _model.HasWinner ? Localization.Won($"P{_model.WinnerPlayer + 1}") : Localization.Text("Hòa!");
 
     void OnModelEvent(LtEvent e)
+    {
+        if (e.Kind != LtEventKind.Filled && e.Kind != LtEventKind.Spoiled && e.Kind != LtEventKind.Stolen) return;
+        ShowEvent(e);
+        if (!IsOnlineHost) return;
+        OnlineSession.Instance.Broadcast(EventMessage, (ref FastBufferWriter writer) =>
+        {
+            writer.WriteValueSafe((int)e.Kind);
+            writer.WriteValueSafe(e.Player);
+            writer.WriteValueSafe(e.Other);
+        });
+    }
+
+    void ShowEvent(LtEvent e)
     {
         switch (e.Kind)
         {
@@ -403,7 +486,7 @@ public class LauTokbokkiGame : PanelMiniGame
     {
         var view = _views[id];
         var layout = _model.Layout;
-        var seat = SeatLayout.Get(PlayerCount)[id];
+        float rotation = SeatRotation(id);
 
         // Pot, its contents, and the perfect state.
         var potCenter = layout.Pots[id];
@@ -442,13 +525,13 @@ public class LauTokbokkiGame : PanelMiniGame
         float cardScale = _unit / ReferenceUnit;
         view.Card.style.translate = new Translate(cardAt.x - ReferenceUnit * CardWidth / 2f, cardAt.y - ReferenceUnit * CardHeight / 2f);
         view.Card.style.scale = new Scale(new Vector2(cardScale, cardScale));
-        view.Card.style.rotate = new Rotate(new Angle(-seat.Rotation));
+        view.Card.style.rotate = new Rotate(new Angle(-rotation));
         UpdateRecipe(id, view);
 
         // Feedback near the pot, toward the table, facing its owner.
         var feedbackAt = ToPanel(potCenter + layout.OpenSide[id] * 0.95f);
         view.Feedback.style.translate = new Translate(feedbackAt.x, feedbackAt.y);
-        view.Feedback.style.rotate = new Rotate(new Angle(-seat.Rotation));
+        view.Feedback.style.rotate = new Rotate(new Angle(-rotation));
         view.Feedback.style.scale = new Scale(new Vector2(cardScale, cardScale));
         view.Feedback.style.opacity = Mathf.Clamp01(1f - (float)(now - view.FeedbackAt) / FeedbackSeconds);
 
@@ -482,8 +565,8 @@ public class LauTokbokkiGame : PanelMiniGame
 
         if (view.Knob != null)
         {
-            var stick = IsRunning || !RoundOver ? PlayerInputRouter.Instance.Stick(id) : Vector2.zero;
-            float radians = -seat.Rotation * Mathf.Deg2Rad;
+            var stick = IsRunning || !RoundOver ? StickOf(id) : Vector2.zero;
+            float radians = -rotation * Mathf.Deg2Rad;
             var local = new Vector2(stick.x * Mathf.Cos(radians) - stick.y * Mathf.Sin(radians), stick.x * Mathf.Sin(radians) + stick.y * Mathf.Cos(radians));
             view.Knob.style.translate = new Translate(local.x * KnobTravel, -local.y * KnobTravel);
             view.Knob.EnableInClassList("is-tapped", now - _tappedAt[id] < TapFlashSeconds);

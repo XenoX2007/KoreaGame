@@ -1,13 +1,22 @@
 using System;
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 // Đá Cầu / Jegichagi, 2 to 4 players, last one with lives wins. Kick the shuttle as it reaches
 // your seat: the ring closing on your button shows when. Feather and jegi take turns by rally.
+// Online the host's model is the only one that runs: kicks are judged by when they happened on the
+// kicker's phone, and a late shuttle only counts as dropped KickGrace after its window, so a kick still
+// on its way is not lost. The other phones draw the host's state.
 public class DaCauGame : PanelMiniGame
 {
     const float CountdownSeconds = 3f;
+    const double KickGrace = 0.3;
+    const string StateMessage = "dacau.state"; // host -> clients: the model's state
+    const string KickMessage = "dacau.kick";   // host -> clients: a judged kick
+    const string MissMessage = "dacau.miss";   // host -> clients: a player dropped it (and whether they are out)
+    const string EndMessage = "dacau.end";     // host -> clients: the final state
     const float StationInset = 200f;  // panel units from the seat button to where the shuttle lands
     const float ShuttleSize = 120f;   // matches .shuttle in DaCauHud.uss
     const float ShadowSize = 70f;     // matches .shuttle-shadow in DaCauHud.uss
@@ -55,29 +64,105 @@ public class DaCauGame : PanelMiniGame
     {
         base.Setup(playerCount);
 
-        _startTime = Now + CountdownSeconds;
-        _model = new DaCauModel(playerCount, settings, _startTime, Environment.TickCount);
-        _model.Missed += OnMissed;
+        // Online the round waits for the host's start time and seed.
+        _model = null;
+        _playerLayer.Clear();
+        _players = Array.Empty<CharacterView>();
+        _stations = Array.Empty<Vector2>();
+        if (!IsOnline) StartRound(Now + CountdownSeconds, Environment.TickCount);
+    }
+
+    protected override void OnRoundScheduled(double countdownStart, int seed) => StartRound(countdownStart + CountdownSeconds, seed);
+
+    void StartRound(double startTime, int seed)
+    {
+        _startTime = startTime;
+        _model = new DaCauModel(PlayerCount, settings, _startTime, seed);
+        if (!IsOnlineClient) _model.Missed += OnMissed;
         BuildLives();
         BuildPlayers();
         LayoutStations();
     }
 
+    protected override void ListenOnline()
+    {
+        if (IsOnlineHost) return;
+
+        Listen(StateMessage, (sender, reader) => ReadState(reader));
+        Listen(KickMessage, (sender, reader) =>
+        {
+            reader.ReadValueSafe(out int player);
+            reader.ReadValueSafe(out int result);
+            ShowKick(player, (KickResult)result);
+        });
+        Listen(MissMessage, (sender, reader) =>
+        {
+            reader.ReadValueSafe(out int player);
+            reader.ReadValueSafe(out bool outOfLives);
+            ShowMiss(player, outOfLives);
+        });
+        Listen(EndMessage, (sender, reader) =>
+        {
+            ReadState(reader);
+            if (_model == null || RoundOver) return;
+            if (!IsRunning) Begin();
+            EndRound(ResultTitle);
+        });
+    }
+
+    void ReadState(FastBufferReader reader)
+    {
+        reader.ReadValueSafe(out byte[] state);
+        if (_model != null) StateIO.Unpack(state, _model.ReadState);
+    }
+
+    void SendState(string message, NetworkDelivery delivery)
+    {
+        var state = StateIO.Pack(_model.WriteState);
+        OnlineSession.Instance.Broadcast(message, (ref FastBufferWriter writer) => writer.WriteValueSafe(state), delivery);
+    }
+
     public override void OnPlayerInput(int playerId, bool pressed)
     {
-        if (!pressed || RoundOver || _model == null) return;
+        if (pressed) Kick(playerId, Now);
+    }
 
-        switch (_model.Tap(playerId, Now))
+    protected override void OnRemotePlayerInput(int playerId, bool pressed, double time)
+    {
+        if (pressed) Kick(playerId, time);
+    }
+
+    void Kick(int playerId, double time)
+    {
+        if (RoundOver || _model == null || playerId >= PlayerCount) return;
+
+        var result = _model.Tap(playerId, time);
+        if (result == KickResult.Ignored) return;
+        ShowKick(playerId, result);
+        if (!IsOnlineHost) return;
+
+        OnlineSession.Instance.Broadcast(KickMessage, (ref FastBufferWriter writer) =>
+        {
+            writer.WriteValueSafe(playerId);
+            writer.WriteValueSafe((int)result);
+        });
+        SendState(StateMessage, NetworkDelivery.ReliableSequenced);
+    }
+
+    void ShowKick(int playerId, KickResult result)
+    {
+        if (playerId < 0 || playerId >= PlayerCount) return;
+        switch (result)
         {
             case KickResult.Perfect:
-                Seats[playerId].ShowFeedback("Perfect!", "feedback--perfect", Now);
+                Seats[playerId]?.ShowFeedback("Perfect!", "feedback--perfect", Now);
                 _kickedAt[playerId] = Now;
                 break;
             case KickResult.Good:
-                Seats[playerId].ShowFeedback("Good", "feedback--good", Now);
+                Seats[playerId]?.ShowFeedback("Good", "feedback--good", Now);
                 _kickedAt[playerId] = Now;
                 break;
-            case KickResult.TooEarly: Seats[playerId].ShowFeedback("Sớm quá!", "feedback--miss", Now); break;
+            case KickResult.TooEarly: Seats[playerId]?.ShowFeedback("Sớm quá!", "feedback--miss", Now); break;
         }
     }
 
@@ -91,24 +176,40 @@ public class DaCauGame : PanelMiniGame
 
         if (!IsRunning && !RoundOver && now >= _startTime) Begin();
 
-        if (IsRunning)
+        if (IsRunning && !IsOnlineClient)
         {
-            _model.Tick(now);
-            if (_model.IsOver) EndRound(() => Localization.Won($"P{_model.Winner + 1}"));
+            _model.Tick(IsOnline ? now - KickGrace : now);
+            if (IsOnlineHost && StateDue()) SendState(StateMessage, NetworkDelivery.UnreliableSequenced);
+            if (_model.IsOver)
+            {
+                if (IsOnlineHost) SendState(EndMessage, NetworkDelivery.ReliableSequenced);
+                EndRound(ResultTitle);
+            }
         }
 
         UpdateView(now);
     }
 
+    string ResultTitle() => Localization.Won($"P{_model.Winner + 1}");
+
     void OnMissed(int playerId)
     {
-        if (_model.LivesOf(playerId) == 0)
+        bool outOfLives = _model.LivesOf(playerId) == 0;
+        ShowMiss(playerId, outOfLives);
+        if (IsOnlineHost)
         {
-            Seats[playerId].Root.AddToClassList("is-out");
-            _players[playerId].Root.AddToClassList("is-out");
+            OnlineSession.Instance.Broadcast(MissMessage, (ref FastBufferWriter writer) =>
+            {
+                writer.WriteValueSafe(playerId);
+                writer.WriteValueSafe(outOfLives);
+            });
         }
-        Seats[playerId].ShowFeedback(_model.LivesOf(playerId) == 0 ? "Hết mạng!" : "Trượt!", "feedback--miss", Now);
-        UpdateLives();
+    }
+
+    void ShowMiss(int playerId, bool outOfLives)
+    {
+        if (playerId < 0 || playerId >= PlayerCount) return;
+        Seats[playerId]?.ShowFeedback(outOfLives ? "Hết mạng!" : "Trượt!", "feedback--miss", Now);
     }
 
     void UpdateView(double now)
@@ -119,8 +220,10 @@ public class DaCauGame : PanelMiniGame
         _wind.text = _model.Wind > 0 ? Localization.Text("Gió xuôi!") : _model.Wind < 0 ? Localization.Text("Gió ngược!") : "";
         _shuttle.EnableInClassList("is-jegi", _model.Kind == ShuttleKind.Jegi);
 
+        UpdateLives();
         for (int i = 0; i < Seats.Length; i++)
         {
+            if (Seats[i] == null) continue;
             bool closing = IsRunning && _model.IsFlying && _model.To == i && now >= _model.ZoneStart;
             var ring = Seats[i].Ring;
             ring.style.display = closing ? DisplayStyle.Flex : DisplayStyle.None;
@@ -133,7 +236,7 @@ public class DaCauGame : PanelMiniGame
             ring.style.opacity = Mathf.Lerp(0.3f, 1f, closed);
         }
 
-        if (_stations.Length == 0) return;
+        if (_stations.Length != PlayerCount) return;
         PlacePlayers(now);
         PlaceShuttle(now);
     }
@@ -206,15 +309,21 @@ public class DaCauGame : PanelMiniGame
                 row.Add(dot);
                 _lifeDots[id][life] = dot;
             }
-            Seats[id].Root.Add(row);
+            Seats[id]?.Root.Add(row);
         }
     }
 
+    // From the model every frame, since online the lives arrive with the host's state.
     void UpdateLives()
     {
         for (int id = 0; id < _lifeDots.Length; id++)
+        {
+            int lives = _model.LivesOf(id);
             for (int life = 0; life < _lifeDots[id].Length; life++)
-                _lifeDots[id][life].EnableInClassList("is-lost", life >= _model.LivesOf(id));
+                _lifeDots[id][life].EnableInClassList("is-lost", life >= lives);
+            Seats[id]?.Root.EnableInClassList("is-out", lives == 0);
+            if (id < _players.Length) _players[id].Root.EnableInClassList("is-out", lives == 0);
+        }
     }
 
     // Far players go in first, so nearer ones are drawn over them.
@@ -236,7 +345,7 @@ public class DaCauGame : PanelMiniGame
     void LayoutStations()
     {
         var size = new Vector2(_stageLayer.resolvedStyle.width, _stageLayer.resolvedStyle.height);
-        if (float.IsNaN(size.x) || size.x < 1f || PlayerCount == 0) return;
+        if (float.IsNaN(size.x) || size.x < 1f || PlayerCount == 0 || _players.Length != PlayerCount) return;
 
         var seats = SeatLayout.Get(PlayerCount);
         _stations = new Vector2[seats.Length];
